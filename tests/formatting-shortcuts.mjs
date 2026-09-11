@@ -23,8 +23,13 @@ for (const extension of ["md", "txt"]) {
   });
   try {
     const page = await app.firstWindow();
+    page.on("console", (message) => {
+      if (message.text().includes("[DEBUG-shortcut]"))
+        console.log(message.text());
+    });
     await app.evaluate(({ BrowserWindow }) => {
       globalThis.shortcutTrace = [];
+      globalThis.__DEFT_TRACE = true;
       const wc = BrowserWindow.getAllWindows()[0].webContents;
       const send = wc.send.bind(wc);
       wc.send = (channel, ...args) => {
