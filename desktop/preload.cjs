@@ -1,6 +1,8 @@
 const { contextBridge, ipcRenderer, webUtils } = require("electron");
 const commands = [
   "init",
+  "updates",
+  "openUpdate",
   "create",
   "open",
   "pending",
