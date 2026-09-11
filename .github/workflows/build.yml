@@ -61,7 +61,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       - run: node scripts/package-test.cjs
       - name: Verify Mac background compositing
-        if: runner.os == 'macOS'
+        if: runner.os == 'macOS' && !cancelled()
         shell: bash
         env:
           DEFT_KOFFI_MODULE: ${{ github.workspace }}/.scratch/mac-capture/node_modules/koffi
