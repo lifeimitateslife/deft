@@ -20,6 +20,18 @@ The source has 21 passing unit tests. Packaged Windows tests cover compact menus
 
 The installer defaults to Program Files and permits a custom folder. Its elevated destination chooser was observed, but migration completion requires owner interaction. The per-user candidate passed actual Windows ShellExecuteEx txt/md cold launch, seven successive opens and save-close-reopen. See the [versioned artifact audit](https://github.com/lifeimitateslife/deft/releases/download/v0.2.0/CLAIM-AUDIT.md) for evidence and remaining gaps. No clean Windows virtual machine without developer tools was available; bundled-runtime structure does not substitute for that acceptance test.
 
+## 0.2.2 packaged verification
+
+Release source is `91b21a25071a516268be7981d49ac3d44ef6a482`. [Final CI](https://github.com/lifeimitateslife/deft/actions/runs/34579859764) passed on Windows x64 and both native macOS architectures, including packaged keyboard/menu workflows. The freshly extracted final Windows installer passed formatting/shortcuts, overlapping-save, native file-safety, Preferences, recovery/discard and clipboard suites, plus three independent runs totaling 369 file handoffs. Twenty-six unit tests passed.
+
+Formatting now separates file kind from explicit formatted presentation, supports caret typing state, and retains portable source in `.txt`. A separate save queue ensures a second explicit Save waits for an in-flight save and persists the latest buffer. A Mac menu handler no longer steals focus after Command+Option+F. Windows test assertions wait for completed saves before opening their destinations: an earlier immediate disk-read assertion interfered with atomic replacement and exposed EPERM. Exact source assertions and the existing timeout remain. One earlier CI font-list timeout is retained as a failed attempt, not counted as a pass.
+
+The final Windows payload was compared over controlled real background windows on the secondary monitor. Blur-off retained sharp stripe contrast (239, versus 1 with Acrylic), both light/dark opacity controls reduced background response, and Solid stayed opaque. Available physical displays were at 100% scale. Windows controls native Acrylic strength; macOS keeps vibrancy and disables the unsupported blur-off control. Low background opacity can reduce readability over busy backgrounds.
+
+All three extracted ASARs match release source/build assets. Windows app/installer ICO images and Mac app/document ICNS match the approved artwork. The README screenshot is the actual final Windows payload with synthetic writing.
+
+The owner had 0.2.1 open during these checks; it was not force-closed. Installation of 0.2.2 and a current real-profile Explorer/default-app acceptance run remain pending normal session closure. Program Files/custom-path installation was accepted in 0.2.1 and its configuration is unchanged. Packaged verification does not substitute for that pending upgrade. See the [0.2.2 audit](https://github.com/lifeimitateslife/deft/releases/download/v0.2.2/CLAIM-AUDIT.md) for the exact scope and limitations.
+
 ## Local Windows checks
 
 Storage tests cover byte-identical round trips, UTF-8 BOM and UTF-16, mixed endings, legacy encoding refusal, external conflicts, case aliases, queued writes, recovery identity, and discarding one tab while retaining another draft.
