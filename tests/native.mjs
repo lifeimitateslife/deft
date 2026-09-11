@@ -125,9 +125,18 @@ try {
   await page.getByPlaceholder("Find").fill("Alpha");
   await page.getByPlaceholder("Replace").fill("Gamma");
   await page.getByRole("button", { name: "replace all", exact: true }).click();
+  assert.ok(
+    (await page.locator(".cm-content").textContent()).includes("Gamma"),
+    "Replace all changes the editor",
+  );
   await page.keyboard.press("Escape");
   await page.keyboard.press(`${mod}+s`);
-  await page.waitForTimeout(300);
+  for (
+    let attempt = 0;
+    attempt < 50 && (await fs.readFile(unknown, "utf8")) !== "Gamma\r\nBeta\n";
+    attempt++
+  )
+    await page.waitForTimeout(100);
   assert.equal(await fs.readFile(unknown, "utf8"), "Gamma\r\nBeta\n");
   await fs.writeFile(unknown, "External refresh");
   await page.waitForTimeout(2900);

@@ -46,32 +46,41 @@
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "deleteAppDataOnUninstall": false
+      "deleteAppDataOnUninstall": false,
+      "include": "assets/installer.nsh"
     },
     "mac": {
       "target": [
         "dmg"
       ],
       "category": "public.app-category.productivity",
-      "icon": "assets/icon.icns"
+      "icon": "assets/icon.icns",
+      "fileAssociations": [
+        {
+          "ext": [
+            "md",
+            "markdown",
+            "mdown"
+          ],
+          "name": "Markdown document",
+          "role": "Editor",
+          "icon": "document.icns"
+        },
+        {
+          "ext": [
+            "txt",
+            "log"
+          ],
+          "name": "Text document",
+          "role": "Editor",
+          "icon": "document.icns"
+        }
+      ]
     },
-    "fileAssociations": [
+    "extraResources": [
       {
-        "ext": [
-          "md",
-          "markdown",
-          "mdown"
-        ],
-        "name": "Markdown document",
-        "role": "Editor"
-      },
-      {
-        "ext": [
-          "txt",
-          "log"
-        ],
-        "name": "Text document",
-        "role": "Editor"
+        "from": "assets/document.ico",
+        "to": "document.ico"
       }
     ]
   },
