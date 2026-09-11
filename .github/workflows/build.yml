@@ -70,10 +70,12 @@ jobs:
           mount="$RUNNER_TEMP/deft-verify"
           hdiutil verify release/*.dmg
           hdiutil attach -readonly -nobrowse -mountpoint "$mount" release/*.dmg
-          trap 'hdiutil detach "$mount"' EXIT
-          args=()
-          if [[ "$DISTRIBUTION" == "true" ]]; then args+=(--distribution); fi
-          node scripts/verify-mac.cjs "$mount/DEFT.app" "${args[@]}"
+          trap 'verify_status=$?; hdiutil detach "$mount"; exit "$verify_status"' EXIT
+          if [[ "$DISTRIBUTION" == "true" ]]; then
+            node scripts/verify-mac.cjs "$mount/DEFT.app" --distribution
+          else
+            node scripts/verify-mac.cjs "$mount/DEFT.app"
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: deft-${{ matrix.platform }}

@@ -22,6 +22,7 @@ Verdict: incomplete bundle signature repaired in a local development build; publ
 8. `node scripts/package-test.cjs`: passed all nine packaged suites: native editing/export, second-instance handoff (39 deliveries), session recovery, last-tab behavior, appearance, preferences, formatting shortcuts, saves in flight, and clipboard. Synthetic documents and isolated test profiles were used.
 9. Changed executable/config files passed Prettier; workflow YAML parsed with all three platform matrix entries; `git diff --check` passed.
 10. The first PR CI run caught a second packaging path: electron-builder skips all signing during PR builds, including ad-hoc signing. The new signature gate rejected that output. The development packaging step now explicitly permits PR signing, with certificate discovery disabled and no signing secrets supplied. Public signing remains a separate tag/manual step.
+11. Log inspection of the next CI run caught an empty-array expansion failure in macOS's Bash 3.2 that skipped the mounted-app check despite a green job. The command now uses explicit branches, and cleanup preserves the verification exit status. A green job without the actual signature result is not accepted as evidence.
 
 ## Review and limitations
 
