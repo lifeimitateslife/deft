@@ -8,6 +8,7 @@ for (const test of [
   "tests/native.mjs",
   "tests/second-instance.mjs",
   "tests/session.mjs",
+  "tests/last-tab.mjs",
   "tests/appearance.mjs",
   "tests/preferences-ui.mjs",
   "tests/formatting-shortcuts.mjs",

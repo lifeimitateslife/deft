@@ -363,14 +363,7 @@ footer button {
 .brand-mark {
   width: 72px;
   height: 72px;
-  border-radius: 19px;
-  background: #303b4d;
-  color: #fff;
-  font-size: 50px;
-  line-height: 70px;
-  text-align: center;
-  font-weight: 600;
-  box-shadow: 0 8px 20px #23304720;
+  object-fit: contain;
 }
 .empty h1 {
   font-size: 25px;

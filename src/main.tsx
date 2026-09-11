@@ -287,13 +287,14 @@ function App() {
               .catch(report);
           }}
         >
-          <div className="brand-mark">D</div>
+          <img className="brand-mark" src={brandIcon} alt="DEFT logo" />
           <h1>DEFT</h1>
           <p>A little room to think.</p>
           <div>
             <button className="primary" onClick={() => void newDoc("markdown")}>
               New Markdown
             </button>
+            <button onClick={() => void newDoc("text")}>New Text</button>
             <button onClick={() => void open()}>Open a file</button>
           </div>
           <p className="hint">Or drop a text file here.</p>

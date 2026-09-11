@@ -87,9 +87,8 @@ try {
     "named unfinished",
   );
   await page.keyboard.press(`${mod}+w`);
-  await page.waitForFunction(
-    () => document.querySelector(".cm-content")?.textContent === "",
-  );
+  await page.locator(".empty").waitFor();
+  assert.equal(await page.locator(".tab").count(), 0);
   await quit();
   page = await launch();
   assert.equal(await page.locator(".tab").count(), 1);

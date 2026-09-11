@@ -161,7 +161,6 @@ export function useWorkbench() {
         latest.current.active = next.at(-1)?.doc.id || "";
         setActive(latest.current.active);
       }
-      if (!next.length) await createDoc("text");
       await recovery();
     });
   }
