@@ -1,0 +1,111 @@
+{
+  "name": "deft",
+  "version": "0.1.0",
+  "description": "A fast, focused text and Markdown editor.",
+  "author": "lifeimitateslife",
+  "license": "MIT",
+  "private": true,
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "start": "electron .",
+    "test": "node --import tsx --test tests/*.test.cjs tests/*.test.ts",
+    "test:ui": "node tests/native.mjs",
+    "package": "npm run build && electron-builder",
+    "notices": "node scripts/notices.cjs",
+    "format:check": "prettier --check src desktop tests scripts",
+    "icons": "node scripts/icons.cjs"
+  },
+  "build": {
+    "appId": "life.lifeimitateslife.deft",
+    "productName": "DEFT",
+    "directories": {
+      "output": "release",
+      "buildResources": "assets"
+    },
+    "files": [
+      "dist/**/*",
+      "desktop/**/*",
+      "package.json",
+      "LICENSE",
+      "THIRD-PARTY-NOTICES.txt"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "assets/icon.icns"
+    },
+    "fileAssociations": [
+      {
+        "ext": [
+          "md",
+          "markdown",
+          "mdown"
+        ],
+        "name": "Markdown document",
+        "role": "Editor"
+      },
+      {
+        "ext": [
+          "txt",
+          "log"
+        ],
+        "name": "Text document",
+        "role": "Editor"
+      }
+    ]
+  },
+  "dependencies": {
+    "iconv-lite": "^0.7.3"
+  },
+  "devDependencies": {
+    "@types/katex": "^0.16.8",
+    "@types/markdown-it": "^14.2.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "electron": "^44.3.0",
+    "electron-builder": "^26.15.3",
+    "playwright": "^1.63.0",
+    "png-to-ico": "^3.0.2",
+    "prettier": "^3.9.6",
+    "sharp": "^0.35.4",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0",
+    "@codemirror/commands": "^6.11.0",
+    "@codemirror/lang-markdown": "^6.5.2",
+    "@codemirror/language": "^6.12.4",
+    "@codemirror/language-data": "^6.5.2",
+    "@codemirror/search": "^6.7.2",
+    "@codemirror/state": "^6.7.4",
+    "@codemirror/view": "^6.43.11",
+    "@lezer/markdown": "^1.7.2",
+    "dompurify": "^3.4.15",
+    "katex": "^0.18.7",
+    "markdown-it": "^15.0.1",
+    "markdown-it-task-lists": "^2.1.1",
+    "markdown-it-texmath": "^1.0.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  }
+}
