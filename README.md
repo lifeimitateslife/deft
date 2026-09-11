@@ -7,11 +7,11 @@ By **Life Imitates Life**
 A focused text and Markdown editor for Windows and macOS. Open a file and start writing, without an account, vault, server or subscription.
 
 <!-- downloads:start -->
-**0.2.2 prerelease**
+**0.2.3 prerelease**
 
-- [Download for Windows (.exe, x64)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.2/DEFT.Setup.0.2.2.exe)
-- [Download for Mac (Apple Silicon)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.2/DEFT-0.2.2-arm64.dmg)
-- [Download for Mac (Intel)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.2/DEFT-0.2.2-x64.dmg)
+- [Download for Windows (.exe, x64)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.3/DEFT.Setup.0.2.3.exe)
+- [Download for Mac (Apple Silicon)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.3/DEFT-0.2.3-arm64.dmg)
+- [Download for Mac (Intel)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.3/DEFT-0.2.3-x64.dmg)
 - [All releases](https://github.com/lifeimitateslife/deft/releases)
 <!-- downloads:end -->
 
@@ -21,7 +21,7 @@ A focused text and Markdown editor for Windows and macOS. Open a file and start 
 
 On Windows, the installer defaults to `C:\Program Files\DEFT`; choose Browse to use a custom folder. Installation requires administrator approval. Open the Mac disk image and drag DEFT into Applications. The application includes its runtime; Node.js, Git and developer tools are only needed to build from source.
 
-The [0.2.2 prerelease](https://github.com/lifeimitateslife/deft/releases/tag/v0.2.2) includes checksums, a claim audit, and verification evidence. Try copies of your own files before choosing DEFT as your everyday default.
+The [0.2.3 prerelease](https://github.com/lifeimitateslife/deft/releases/tag/v0.2.3) includes checksums, a claim audit, and verification evidence. Try copies of your own files before choosing DEFT as your everyday default.
 
 Builds are unsigned. Windows may show an unknown-publisher warning. Verify the release checksum before choosing to run the installer. On macOS, drag DEFT to Applications. If macOS blocks this unsigned application, use System Settings > Privacy & Security > Open Anyway for DEFT. Do not disable system security.
 
@@ -34,7 +34,7 @@ To choose DEFT for `.md` and `.txt`, use Windows Settings > Apps > Default apps,
 - Find/replace, undo/redo, go to line, word wrap, line numbers, text size, and read-only editing.
 - System appearance by default, plus Light, Dark and custom colors. Preferences includes installed writing and code fonts, independent Glass background opacity and Windows background blur, and Solid material. Native backdrop support depends on the OS.
 - HTML export, native Print, and PDF export.
-- Explicit Save by default and optional autosave. Closing the app remembers open writing, including unnamed drafts. Deliberately closing a tab discards its unsaved buffer without deleting its file.
+- Explicit Save by default and optional autosave. Closing the app remembers open writing, including unnamed drafts. Deliberately closing a tab discards its unsaved buffer without deleting its file. Closing the final tab shows the welcome screen; +, New Text and New Markdown start fresh tabs.
 - One compact app menu and tab strip. Selection formatting appears when relevant; full formatting and view controls remain in the menus. Preferences is directly in the application menu, or the native application menu on macOS.
 
 Any extension, including no extension, can open as text. Markdown extensions select Markdown mode; other files stay plain. UTF-8 and BOM-marked UTF-16 are supported. Binary-looking or invalid UTF-8 files require confirmation; the legacy fallback is reversible Windows-1252. Characters that cannot be saved in the original encoding are rejected; use Save a UTF-8 copy.
@@ -87,7 +87,7 @@ Live view reveals source for editing tables and math. Some Markdown constructs r
 
 Clear translucency is available on Windows 11 22H2 and later. macOS retains native vibrancy; its blur-off control is disabled. Windows controls Acrylic blur strength and inactive-window appearance. Very low background opacity can reduce readability over busy windows. System accessibility preferences can require a solid background.
 
-External changes are checked every 2.5 seconds. A writer that changes a file in the short interval between the final check and filesystem replacement cannot be completely excluded. Hard links, extended attributes, and custom Windows ACL preservation are not guaranteed. Deleted or renamed files require reopening or Save As. Windows registration and a Program Files upgrade were tested in 0.2.1; the 0.2.2 owner upgrade, interactive default selection and macOS installation remain unverified; see [verification](docs/verification.md).
+External changes are checked every 2.5 seconds. A writer that changes a file in the short interval between the final check and filesystem replacement cannot be completely excluded. Hard links, extended attributes, and custom Windows ACL preservation are not guaranteed. Deleted or renamed files require reopening or Save As. Windows registration and the 0.2.3 Program Files upgrade were tested; interactive default selection and macOS installation remain unverified; see [verification](docs/verification.md).
 
 Settings and recovery live in `%APPDATA%/deft` on Windows and `~/Library/Application Support/deft` on macOS. Uninstalling does not delete documents. Preferences lets you turn off restoration of the previous session. Uninstall through Windows Settings > Apps > Installed apps > DEFT > Uninstall, or remove DEFT from Applications on macOS. Settings and recovery are preserved when uninstalling.
 

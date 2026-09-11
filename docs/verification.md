@@ -20,6 +20,16 @@ The source has 21 passing unit tests. Packaged Windows tests cover compact menus
 
 The installer defaults to Program Files and permits a custom folder. Its elevated destination chooser was observed, but migration completion requires owner interaction. The per-user candidate passed actual Windows ShellExecuteEx txt/md cold launch, seven successive opens and save-close-reopen. See the [versioned artifact audit](https://github.com/lifeimitateslife/deft/releases/download/v0.2.0/CLAIM-AUDIT.md) for evidence and remaining gaps. No clean Windows virtual machine without developer tools was available; bundled-runtime structure does not substitute for that acceptance test.
 
+## 0.2.3 installed verification
+
+Release source `09c8150f597422787da6eac28b11ce4812bb8587` removes automatic replacement-tab creation after explicit close. X and Ctrl/Command+W on the final tab show the welcome screen; +, New Text and New Markdown create fresh tabs. Normal startup behavior remains unchanged. The installed 0.2.1 negative control failed this exact welcome-screen assertion before the fix.
+
+[Native CI](https://github.com/lifeimitateslife/deft/actions/runs/34633426873) passed on Windows x64 and both Mac architectures, including the new packaged last-tab test. The actual final Windows installer upgraded Program Files from 0.2.1 to 0.2.3. Installed executable/ASAR bytes match the final CI package; Life Imitates Life metadata, uninstall registration, Start menu target and document icon/open registrations were checked. The old LocalAppData/Programs/DEFT install is absent. Owner settings and recovery were backed up privately and remained byte-identical after installation and isolated tests.
+
+Installed last-tab, session/recovery, formatting/shortcuts, overlapping-save, native file-safety and Preferences workflows passed, followed by 123 successful file handoffs. Twenty-six unit tests passed. The installed welcome screen was visually inspected on the secondary monitor. All three fresh package extractions match release source/build assets; app/installer/uninstaller Windows icons and Mac bundle icons match the approved exports.
+
+Custom destination configuration is unchanged; the fresh upgrade used Program Files. Manual default selection, Mac Finder/Dock installation, physical printing and signing/notarization remain outside verified coverage. The [0.2.3 audit](https://github.com/lifeimitateslife/deft/releases/download/v0.2.3/CLAIM-AUDIT.md) includes exact artifacts and evidence. Earlier counts below are historical and are not combined with this release's checks.
+
 ## 0.2.2 packaged verification
 
 Release source is `91b21a25071a516268be7981d49ac3d44ef6a482`. [Final CI](https://github.com/lifeimitateslife/deft/actions/runs/34579859764) passed on Windows x64 and both native macOS architectures, including packaged keyboard/menu workflows. The freshly extracted final Windows installer passed formatting/shortcuts, overlapping-save, native file-safety, Preferences, recovery/discard and clipboard suites, plus three independent runs totaling 369 file handoffs. Twenty-six unit tests passed.
