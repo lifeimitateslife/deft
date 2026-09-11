@@ -10,10 +10,16 @@ for (const test of [
   "tests/session.mjs",
   "tests/appearance.mjs",
   "tests/preferences-ui.mjs",
+  "tests/formatting-shortcuts.mjs",
+  "tests/clipboard.mjs",
 ]) {
   const result = spawnSync(process.execPath, [test], {
     stdio: "inherit",
-    env: { ...process.env, DEFT_EXECUTABLE: path.resolve(executable) },
+    env: {
+      ...process.env,
+      DEFT_EXECUTABLE: path.resolve(executable),
+      DEFT_FORMATTED_PASTE: "1",
+    },
   });
   if (result.status !== 0) {
     process.exitCode = result.status ?? 1;

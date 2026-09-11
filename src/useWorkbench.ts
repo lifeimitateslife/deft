@@ -4,6 +4,7 @@ import { renderMarkdown, exportDocument } from "./markdown";
 import type { Document, Settings, Kind, Mode } from "./types";
 import type { Format } from "./formatting";
 import { preferences } from "./preferences";
+import { shortcutFor } from "../desktop/shortcuts.cjs";
 const defaults = preferences();
 const kindOf = (doc: Document): Kind =>
   doc.kind || (/\.(md|markdown|mdown)$/i.test(doc.name) ? "markdown" : "text");
@@ -106,6 +107,9 @@ export function useWorkbench() {
       tab.doc = {
         ...tab.doc,
         ...result,
+        kind: tab.doc.kind,
+        mode: tab.doc.mode,
+        formatted: tab.doc.formatted,
         text: tab.doc.text,
         dirty: tab.doc.text !== text,
       };
@@ -179,15 +183,22 @@ export function useWorkbench() {
   async function command(action: string) {
     if (closing.current) return;
     const tab = latest.current.current;
+    if (
+      (action.startsWith("format-") || action.startsWith("table-")) &&
+      document.activeElement?.matches("input, textarea, select")
+    )
+      return;
     try {
       if (action.startsWith("recent:")) return open([action.slice(7)]);
       if (
         action.startsWith("edit-") ||
         action.startsWith("zoom-") ||
-        ["about", "default-apps"].includes(action)
+        ["about", "default-apps", "fullscreen"].includes(action)
       )
         return window.deft.nativeCommand(action);
-      if (action.startsWith("mode-") && tab?.doc.kind === "markdown") {
+      if (action === "toggle-source" && tab)
+        action = tab.doc.mode === "source" ? "mode-live" : "mode-source";
+      if (action.startsWith("mode-") && tab) {
         const value = action.slice(5) as Mode;
         if (tab.doc.text.length >= 500_000 && value !== "source") {
           setNotice(
@@ -195,10 +206,37 @@ export function useWorkbench() {
           );
           return;
         }
+        if (value !== "source" && !tab.formatted) tab.doc.formatted = true;
         tab.doc.mode = value;
         tab.configure(latest.current.settings);
         update();
         return;
+      }
+      if (
+        (action.startsWith("format-") || action.startsWith("table-")) &&
+        tab
+      ) {
+        if (tab.doc.readOnly || tab.doc.mode === "read") {
+          setNotice(
+            "Formatting is unavailable in a read-only view. Enable editing first.",
+          );
+          return;
+        }
+        if (!tab.formatted) {
+          if (tab.doc.text.length >= 500_000) {
+            setNotice(
+              "Formatted editing is limited to documents under 500,000 characters.",
+            );
+            return;
+          }
+          tab.doc.formatted = true;
+          tab.doc.mode = "live";
+          tab.configure(latest.current.settings);
+          setNotice(
+            "Formatting inserts Markdown characters. The filename stays the same; these characters can change a script or config's meaning.",
+          );
+          update();
+        }
       }
       if (action === "status-bar")
         return configure({
@@ -214,7 +252,7 @@ export function useWorkbench() {
         update();
         return;
       }
-      if (action.startsWith("table-") && tab?.doc.kind === "markdown") {
+      if (action.startsWith("table-") && tab?.formatted) {
         if (action === "table-insert")
           tab.insert("\n| Column | Column |\n| --- | --- |\n| Text | Text |\n");
         else tab.table(action.slice(6) as import("./table").TableAction);
@@ -222,7 +260,7 @@ export function useWorkbench() {
       }
       if (
         action.startsWith("format-") &&
-        tab?.doc.kind === "markdown" &&
+        tab?.formatted &&
         !tab.doc.readOnly &&
         tab.doc.mode !== "read"
       ) {
@@ -268,6 +306,7 @@ export function useWorkbench() {
         case "settings":
           return setPanel((value) => !value);
         case "find":
+        case "replace":
         case "line":
           return tab?.command(action);
         case "export":
@@ -304,34 +343,34 @@ export function useWorkbench() {
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if (event.defaultPrevented) return;
-      if (event.key === "Escape") {
-        setPanel(false);
-        return;
-      }
-      if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
-      const key = event.key.toLowerCase();
-      const mapped: Record<string, string> = {
-        b: "format-bold",
-        i: "format-italic",
-        k: "format-link",
-        t: "new-text",
-        tab: event.shiftKey ? "previous-tab" : "next-tab",
-        f: "find",
-        l: "line",
-        s: event.shiftKey ? "save-as" : "save",
-        o: "open",
-        n: event.shiftKey ? "new-markdown" : "new-text",
-        w: "close",
-        p: "print",
-        ",": "settings",
-      };
-      if (mapped[key]) {
+      const action = shortcutFor(
+        {
+          type: "keyDown",
+          key: event.key,
+          code: event.code,
+          control: event.ctrlKey,
+          meta: event.metaKey,
+          alt: event.altKey,
+          shift: event.shiftKey,
+          isComposing: event.isComposing,
+          altGraph: event.getModifierState("AltGraph"),
+        },
+        window.deft.platform,
+      );
+      if (action) {
         event.preventDefault();
-        void command(mapped[key]);
+        void command(action);
       }
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    window.addEventListener("keydown", handler, true);
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) setPanel(false);
+    };
+    window.addEventListener("keydown", escape);
+    return () => {
+      window.removeEventListener("keydown", handler, true);
+      window.removeEventListener("keydown", escape);
+    };
   }, []);
   useEffect(() => {
     if (host.current && current) {

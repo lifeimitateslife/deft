@@ -67,10 +67,7 @@ function App() {
     settingsPanel.current?.querySelector<HTMLButtonElement>("button")?.focus();
     const dismiss = (event: PointerEvent) => {
       const target = event.target as Node;
-      if (
-        (target as HTMLElement).closest?.(".font-picker, .preferences-toggle")
-      )
-        return;
+      if ((target as HTMLElement).closest?.(".font-picker")) return;
       if (
         !settingsPanel.current?.contains(target) &&
         !document.querySelector(".application-menu")?.contains(target)
@@ -98,7 +95,7 @@ function App() {
     return window.deft.onAction((action: string) => {
       if (action === "material-updated") void refreshMaterial();
     });
-  }, [settings.material]);
+  }, [settings.material, settings.backgroundBlur]);
   const custom = settings.appearance === "custom" ? settings.custom : undefined;
   const theme = {
     ...(custom
@@ -168,30 +165,6 @@ function App() {
         >
           +
         </button>
-        <button
-          className="preferences-toggle"
-          aria-label="Preferences"
-          title="Preferences (Ctrl/Cmd+,)"
-          aria-expanded={panel}
-          aria-controls="settings-panel"
-          onClick={() => setPanel((value) => !value)}
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.7"
-            aria-hidden="true"
-          >
-            <path
-              d="m9 3-.6 2.2-1.5.9-2.2-.6-3 5.1 1.7 1.6v1.8l-1.7 1.6 3 5.1 2.2-.6 1.5.9L9 23h6l.6-2.2 1.5-.9 2.2.6 3-5.1-1.7-1.6V12l1.7-1.6-3-5.1-2.2.6-1.5-.9L15 3Z"
-              transform="translate(2 0) scale(.83)"
-            />
-            <circle cx="12" cy="11" r="3" />
-          </svg>
-        </button>
       </div>
       {current ? (
         <>
@@ -209,7 +182,7 @@ function App() {
             hidden={panel || !!linkEditor}
           />
           <div className="workspace">
-            {outline && current.doc.kind === "markdown" && (
+            {outline && current.formatted && (
               <aside aria-label="Heading outline">
                 <div className="aside-label">On this page</div>
                 {headings.map((heading, index) => (
@@ -233,7 +206,7 @@ function App() {
               </aside>
             )}
             <div
-              className={`document ${current.doc.kind} ${current.doc.mode}`}
+              className={`document ${current.formatted ? "markdown" : current.doc.kind} ${current.doc.mode}`}
               onPaste={paste}
               onDragOver={(event) => event.preventDefault()}
               onDrop={drop}
@@ -291,7 +264,12 @@ function App() {
                     : "LF"}
             </span>
             <span>{current.doc.text.length.toLocaleString()} characters</span>
-            {current.doc.kind === "markdown" && <span>{current.doc.mode}</span>}
+            {current.formatted && (
+              <span title="Formatting is stored as portable Markdown characters">
+                {current.doc.mode}
+                {current.doc.kind === "text" ? " · Markdown formatting" : ""}
+              </span>
+            )}
             <button onClick={() => void window.deft.reveal(current.doc.id)}>
               Reveal file
             </button>
@@ -467,7 +445,7 @@ function ContextualFormat({
     const updatePosition = () => {
       if (
         hidden ||
-        editor.doc.kind !== "markdown" ||
+        !editor.formatted ||
         editor.doc.mode !== "live" ||
         editor.doc.readOnly ||
         editor.state.selection.main.empty ||

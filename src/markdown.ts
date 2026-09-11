@@ -50,7 +50,7 @@ export async function renderMarkdown(text: string, doc?: Document) {
 }
 export async function exportDocument(doc: Document) {
   const body =
-    doc.kind === "markdown"
+    doc.kind === "markdown" || doc.formatted
       ? await renderMarkdown(doc.text, doc)
       : `<pre>${doc.text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>`;
   return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:"><title>DEFT document</title><style>body{font:17px/1.65 system-ui;max-width:780px;margin:48px auto;color:#20242b;padding:0 24px}pre,code{font-family:monospace;white-space:pre-wrap}img{max-width:100%}table{border-collapse:collapse}td,th{border:1px solid #aaa;padding:6px 12px}blockquote{border-left:3px solid #bbb;margin-left:0;padding-left:20px}@media print{body{margin:0;max-width:none}}</style></head><body>${body}</body></html>`;

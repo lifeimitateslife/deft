@@ -18,7 +18,7 @@ export function Appearance({
   settings: Settings;
   visible: boolean;
   configure: (value: Partial<Settings>) => Promise<void>;
-  material: { enabled: boolean; reason: string };
+  material: { enabled: boolean; reason: string; clearSupported?: boolean };
 }) {
   const [original] = useState(() => ({
     ...settings,
@@ -161,9 +161,22 @@ export function Appearance({
           Reset
         </button>
       </div>
+      <label>
+        Background blur
+        <input
+          type="checkbox"
+          checked={
+            !material.clearSupported || settings.backgroundBlur !== false
+          }
+          disabled={!material.enabled || !material.clearSupported}
+          onChange={(event) =>
+            void configure({ backgroundBlur: event.target.checked })
+          }
+        />
+      </label>
       <p className="default-hint">
         Default: {defaults.glassOpacity}%. Lower values show more background
-        through the native blur. Text stays opaque.
+        through the window. Text stays opaque.
       </p>
       <p>{material.reason}</p>
       <label>

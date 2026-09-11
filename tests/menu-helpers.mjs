@@ -1,4 +1,5 @@
 export async function menuCommand(app, page, group, label) {
+  if (label === "Preferences…") return openPreferences(app, page);
   if (process.platform === "darwin") {
     await app.evaluate(
       ({ Menu, BrowserWindow }, { group, label }) => {
@@ -25,6 +26,21 @@ export async function menuCommand(app, page, group, label) {
       .last()
       .click();
   }
+}
+export async function openPreferences(app, page) {
+  if (process.platform === "darwin") {
+    await page.keyboard.press("Meta+,");
+  } else {
+    await page
+      .getByRole("button", { name: "Application menu", exact: true })
+      .click();
+    await page
+      .getByRole("menuitem", { name: "Preferences…", exact: true })
+      .click();
+  }
+  await page
+    .getByRole("region", { name: "Preferences", exact: true })
+    .waitFor();
 }
 export async function openFormat(app, page) {
   if (process.platform === "darwin") {

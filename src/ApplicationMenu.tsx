@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { DocumentEditor } from "./editor";
 import type { Settings } from "./types";
+import { shortcutLabel } from "./shortcuts";
+import type { Format } from "./formatting";
 export const formatItems = [
   ["Bold", "format-bold"],
   ["Italic", "format-italic"],
@@ -45,6 +47,7 @@ export function ApplicationMenu({
     File: [
       ["New Text", "new-text"],
       ["New Markdown", "new-markdown"],
+      ["New tab", "new-text"],
       ["Open…", "open"],
       ["Recent Files", "recent"],
       ["Save", "save"],
@@ -63,6 +66,7 @@ export function ApplicationMenu({
       ["Paste", "edit-paste"],
       ["Select all", "edit-selectAll"],
       ["Find and replace…", "find"],
+      ["Replace…", "replace"],
       ["Go to line…", "line"],
     ],
     Format: [
@@ -80,25 +84,30 @@ export function ApplicationMenu({
         : []),
     ],
     View: [
-      ...(current?.doc.kind === "markdown"
+      ...(current?.formatted
         ? [
             ["Live", "mode-live"],
-            ["Source", "mode-source"],
+            [
+              current.doc.kind === "markdown" ? "Source" : "Plain / Source",
+              "mode-source",
+            ],
             ["Read", "mode-read"],
             ["Heading outline", "outline"],
           ]
-        : []),
+        : [
+            ["Formatted (Markdown)", "mode-live"],
+            ["Plain / Source", "mode-source"],
+          ]),
       ["Read-only", "read-only"],
       ["Status bar", "status-bar"],
       ["Zoom in", "zoom-in"],
       ["Zoom out", "zoom-out"],
       ["Actual size", "zoom-reset"],
-      ["Preferences…", "settings"],
+      ["Full screen", "fullscreen"],
     ],
     Help: [
       ["About DEFT", "about"],
       ["Choose default apps", "default-apps"],
-      ["Preferences…", "settings"],
     ],
     recent: settings.recent.map((file) => [
       file.split(/[/\\]/).at(-1)!,
@@ -134,7 +143,7 @@ export function ApplicationMenu({
       event.preventDefault();
       setGroup(current?.doc.kind === "markdown" ? "Format" : "Edit");
       setPoint({
-        x: Math.min(event.clientX, innerWidth - 250),
+        x: Math.min(event.clientX, innerWidth - 360),
         y: Math.min(event.clientY, innerHeight - 330),
       });
       setShown(true);
@@ -168,7 +177,7 @@ export function ApplicationMenu({
   }
   const disabled = (action: string) =>
     action.startsWith("format-") || action.startsWith("table-")
-      ? !editable || current?.doc.kind !== "markdown"
+      ? !editable
       : [
           "save",
           "save-as",
@@ -254,13 +263,22 @@ export function ApplicationMenu({
                 <button
                   role="menuitem"
                   aria-label={label}
-                  key={action}
+                  key={label}
                   disabled={disabled(action)}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => run(action)}
                 >
                   {label}
+                  <span className="shortcut">
+                    {label === "New tab"
+                      ? shortcutLabel("new-text").replace("+N", "+T")
+                      : shortcutLabel(
+                          action === "mode-source" ? "toggle-source" : action,
+                        )}
+                  </span>
                   {(action === `mode-${current?.doc.mode}` ||
+                    (action.startsWith("format-") &&
+                      current?.formatActive(action.slice(7) as Format)) ||
                     (action === "status-bar" && settings.statusBar !== false) ||
                     (action === "read-only" && current?.doc.readOnly)) && (
                     <span aria-label="Selected">✓</span>
@@ -272,20 +290,31 @@ export function ApplicationMenu({
             )}
           </>
         ) : (
-          Object.keys(groups)
-            .filter((name) => name !== "recent")
-            .map((name) => (
-              <button
-                role="menuitem"
-                aria-label={name}
-                aria-haspopup="menu"
-                key={name}
-                onClick={() => setGroup(name)}
-              >
-                {name}
-                <span aria-hidden="true">›</span>
-              </button>
-            ))
+          <>
+            {Object.keys(groups)
+              .filter((name) => name !== "recent")
+              .map((name) => (
+                <button
+                  role="menuitem"
+                  aria-label={name}
+                  aria-haspopup="menu"
+                  key={name}
+                  onClick={() => setGroup(name)}
+                >
+                  {name}
+                  <span aria-hidden="true">›</span>
+                </button>
+              ))}
+            <div role="separator" />
+            <button
+              role="menuitem"
+              aria-label="Preferences…"
+              onClick={() => run("settings")}
+            >
+              Preferences…{" "}
+              <span className="shortcut">{shortcutLabel("settings")}</span>
+            </button>
+          </>
         )}
       </div>
     </div>

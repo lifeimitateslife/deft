@@ -53,6 +53,21 @@ export function selectedLink(state: EditorState) {
   const url = node?.getChild("URL");
   return url ? state.sliceDoc(url.from, url.to) : "";
 }
+export function formatAllowed(state: EditorState, action: Format) {
+  const frontmatter = state.doc
+    .toString()
+    .match(/^---\n[\s\S]*?\n(?:---|\.\.\.)(?:\n|$)/);
+  return (
+    !(frontmatter && state.selection.main.from < frontmatter[0].length) &&
+    !containing(state, "FencedCode") &&
+    !containing(state, "CodeBlock") &&
+    !(
+      containing(state, "InlineCode") &&
+      action !== "inline-code" &&
+      action !== "clear"
+    )
+  );
+}
 export function formatTransaction(
   state: EditorState,
   action: Format,
@@ -60,18 +75,7 @@ export function formatTransaction(
 ): TransactionSpec | undefined {
   const { from, to, empty } = state.selection.main;
   const tree = syntaxTree(state);
-  // Frontmatter is deliberately opaque, even when interpreted as Markdown by the parser.
-  const frontmatter = state.doc
-    .toString()
-    .match(/^---\n[\s\S]*?\n(?:---|\.\.\.)(?:\n|$)/);
-  if (frontmatter && from < frontmatter[0].length) return;
-  if (containing(state, "FencedCode") || containing(state, "CodeBlock")) return;
-  if (
-    containing(state, "InlineCode") &&
-    action !== "inline-code" &&
-    action !== "clear"
-  )
-    return;
+  if (!formatAllowed(state, action)) return;
   const changes: ChangeSpec[] = [];
   let selection: { anchor: number; head?: number } | undefined;
   const removeMarks = (node: SyntaxNode) => {

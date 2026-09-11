@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { DocumentEditor } from "./editor";
+import { shortcutLabel } from "./shortcuts";
 import type { Format } from "./formatting";
 const items: [string, Format][] = [
   ["Strikethrough", "strike"],
@@ -61,7 +62,7 @@ export function FormattingToolbar({
       }}
     >
       <button
-        title="Bold (Ctrl/Cmd+B)"
+        title={`Bold (${shortcutLabel("format-bold")})`}
         aria-pressed={editor.formatActive("bold")}
         disabled={disabled}
         onClick={() => run("bold")}
@@ -69,7 +70,7 @@ export function FormattingToolbar({
         <b>B</b>
       </button>
       <button
-        title="Italic (Ctrl/Cmd+I)"
+        title={`Italic (${shortcutLabel("format-italic")})`}
         aria-pressed={editor.formatActive("italic")}
         disabled={disabled}
         onClick={() => run("italic")}
@@ -77,7 +78,7 @@ export function FormattingToolbar({
         <i>I</i>
       </button>
       <button
-        title="Insert or edit link (Ctrl/Cmd+K)"
+        title={`Insert or edit link (${shortcutLabel("format-link")})`}
         aria-pressed={editor.formatActive("link")}
         disabled={disabled}
         onClick={() => run("link")}
@@ -94,11 +95,7 @@ export function FormattingToolbar({
       <button
         title="Insert table"
         disabled={disabled}
-        onClick={() =>
-          editor.insert(
-            "\n| Column | Column |\n| --- | --- |\n| Text | Text |\n",
-          )
-        }
+        onClick={() => void command("table-insert")}
       >
         Table
       </button>
@@ -147,8 +144,17 @@ export function FormattingToolbar({
         }}
       >
         {items.map(([label, action]) => (
-          <button role="menuitem" key={action} onClick={() => run(action)}>
+          <button
+            role="menuitem"
+            aria-label={label}
+            key={action}
+            onClick={() => run(action)}
+            title={shortcutLabel(`format-${action}`)}
+          >
             {label}
+            <span className="shortcut">
+              {shortcutLabel(`format-${action}`)}
+            </span>
           </button>
         ))}
         <div role="separator" />

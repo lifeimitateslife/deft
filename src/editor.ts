@@ -10,6 +10,8 @@ import {
   defaultKeymap,
   history,
   historyKeymap,
+  redo,
+  undo,
   indentWithTab,
 } from "@codemirror/commands";
 import {
@@ -43,6 +45,12 @@ import {
   type Format,
 } from "./formatting";
 import { fontStack } from "./preferences";
+import {
+  typingFormat,
+  formattedTyping,
+  toggleTyping,
+  typingActive,
+} from "./typing-format";
 import type { Document, Settings } from "./types";
 export class DocumentEditor {
   state: EditorState;
@@ -85,11 +93,16 @@ export class DocumentEditor {
         exactSource.init(() => doc.text),
         sourceHistory,
         history(),
+        typingFormat,
+        formattedTyping,
         drawSelection(),
         highlightActiveLine(),
         bracketMatching(),
         search({ top: true }),
         keymap.of([
+          { key: "Mod-z", run: undo, shift: redo },
+          { key: "Mod-y", run: redo },
+          { key: "Mod-Shift-z", run: redo },
           ...searchKeymap,
           ...defaultKeymap,
           ...historyKeymap,
@@ -134,7 +147,7 @@ export class DocumentEditor {
     };
   }
   language() {
-    return this.doc.kind === "markdown"
+    return this.formatted
       ? [
           markdown({ codeLanguages: languages, extensions: [GFM] }),
           ...(this.doc.mode === "live"
@@ -142,6 +155,9 @@ export class DocumentEditor {
             : []),
         ]
       : [];
+  }
+  get formatted() {
+    return this.doc.kind === "markdown" || this.doc.formatted === true;
   }
   options(settings: Settings) {
     return [
@@ -151,10 +167,10 @@ export class DocumentEditor {
         "&": { fontSize: `${settings.fontSize}px` },
         ".cm-scroller": {
           fontFamily: fontStack(
-            this.doc.kind === "markdown" && this.doc.mode === "source"
+            this.formatted && this.doc.mode === "source"
               ? settings.codeFontFamily
               : settings.fontFamily,
-            this.doc.kind === "markdown" && this.doc.mode === "source",
+            this.formatted && this.doc.mode === "source",
           ),
         },
       }),
@@ -224,9 +240,15 @@ export class DocumentEditor {
   }
   command(name: string) {
     if (!this.view) return;
-    if (name === "find") openSearchPanel(this.view);
-    if (name === "line") gotoLine(this.view);
     this.view.focus();
+    if (name === "find" || name === "replace") {
+      openSearchPanel(this.view);
+      if (name === "replace")
+        this.view.dom
+          .querySelector<HTMLInputElement>('input[name="replace"]')
+          ?.focus();
+    }
+    if (name === "line") gotoLine(this.view);
   }
   insert(before: string, after = "") {
     if (this.doc.readOnly || this.doc.mode === "read") return;
@@ -246,18 +268,18 @@ export class DocumentEditor {
     this.view?.focus();
   }
   format(action: Format, href?: string) {
-    if (
-      this.doc.kind !== "markdown" ||
-      this.doc.readOnly ||
-      this.doc.mode === "read"
-    )
+    if (!this.formatted || this.doc.readOnly || this.doc.mode === "read")
       return;
-    const spec = formatTransaction(this.state, action, href);
+    const spec =
+      toggleTyping(this.state, action) ||
+      formatTransaction(this.state, action, href);
     if (spec) this.dispatch(spec);
     this.view?.focus();
   }
   formatActive(action: Format) {
-    return formatActive(this.state, action);
+    return this.state.selection.main.empty
+      ? typingActive(this.state, action)
+      : formatActive(this.state, action);
   }
   get link() {
     return selectedLink(this.state);
@@ -266,11 +288,7 @@ export class DocumentEditor {
     return selectedTable(this.state);
   }
   table(action: TableAction) {
-    if (
-      this.doc.kind !== "markdown" ||
-      this.doc.readOnly ||
-      this.doc.mode === "read"
-    )
+    if (!this.formatted || this.doc.readOnly || this.doc.mode === "read")
       return;
     const spec = tableTransaction(this.state, action);
     if (spec) this.dispatch(spec);

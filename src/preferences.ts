@@ -17,6 +17,7 @@ export const appearanceDefaults: Partial<Settings> = {
   appearance: defaults.appearance,
   material: defaults.material,
   glassOpacity: defaults.glassOpacity,
+  backgroundBlur: defaults.backgroundBlur,
   custom: undefined,
   fontFamily: defaults.fontFamily,
   codeFontFamily: defaults.codeFontFamily,

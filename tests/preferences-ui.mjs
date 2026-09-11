@@ -1,3 +1,4 @@
+import { openPreferences } from "./menu-helpers.mjs";
 import { placeTestWindow } from "./window-placement.mjs";
 import { _electron as electron } from "playwright";
 import fs from "node:fs/promises";
@@ -21,7 +22,7 @@ try {
   await page.locator(".cm-content").waitFor();
   await page.locator(".cm-content").fill("Keep this unfinished draft 雪");
   const text = await page.locator(".cm-content").textContent();
-  const gear = page.getByRole("button", { name: "Preferences", exact: true });
+  const opener = page.locator(".cm-content");
   await page.locator(".cm-content").focus();
   await page.keyboard.press(
     process.platform === "darwin" ? "Meta+ArrowLeft" : "Home",
@@ -31,7 +32,7 @@ try {
   const scroll = await page
     .locator(".cm-scroller")
     .evaluate((el) => el.scrollTop);
-  await gear.click();
+  await openPreferences(app, page);
   await page.getByRole("button", { name: "Close Preferences" }).click();
   await page.locator(".cm-content").focus();
   assert.equal(
@@ -42,11 +43,31 @@ try {
     await page.locator(".cm-scroller").evaluate((el) => el.scrollTop),
     scroll,
   );
-  await gear.click();
+  await openPreferences(app, page);
   const preferences = page.getByRole("region", {
     name: "Preferences",
     exact: true,
   });
+  const blur = page.getByLabel("Background blur", { exact: true });
+  assert.equal(await blur.isChecked(), true);
+  if (process.platform === "win32") {
+    await blur.uncheck();
+    await page.evaluate(() => window.deft.settings({}));
+    assert.equal(
+      await page.getByLabel("Background opacity", { exact: true }).inputValue(),
+      "68",
+    );
+    assert.equal(
+      (await page.evaluate(() => window.deft.settings())).backgroundBlur,
+      false,
+    );
+    await page.getByLabel("Material", { exact: true }).selectOption("solid");
+    assert.equal(await blur.isDisabled(), true);
+    await page.getByLabel("Material", { exact: true }).selectOption("glass");
+    assert.equal(await blur.isChecked(), false);
+  } else {
+    assert.equal(await blur.isDisabled(), true);
+  }
   await page
     .getByRole("button", { name: "Browse installed fonts", exact: true })
     .click();
@@ -106,7 +127,7 @@ try {
   assert.equal(await preferences.isVisible(), true);
   await page.getByRole("button", { name: "Close Preferences" }).click();
   for (let i = 0; i < 3; i++) {
-    await gear.click();
+    await openPreferences(app, page);
     await page.locator('button[aria-label="Body font"]').click();
     await page.keyboard.press(
       process.platform === "darwin" ? "Meta+," : "Control+,",
@@ -114,11 +135,11 @@ try {
     await picker.waitFor({ state: "hidden" });
     await preferences.waitFor({ state: "hidden" });
     assert.equal(
-      await gear.evaluate((e) => e === document.activeElement),
+      await opener.evaluate((e) => e === document.activeElement),
       true,
     );
   }
-  await gear.click();
+  await openPreferences(app, page);
   await page.getByLabel("Reduce motion", { exact: true }).check();
   await page.getByLabel("Appearance", { exact: true }).selectOption("custom");
   await page.getByLabel("Accent hex", { exact: true }).fill("#ad3456");
@@ -183,7 +204,10 @@ try {
   await page.keyboard.press("Escape");
   await picker.waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "Close Preferences" }).click();
-  assert.equal(await gear.evaluate((e) => e === document.activeElement), true);
+  assert.equal(
+    await opener.evaluate((e) => e === document.activeElement),
+    true,
+  );
   await page.locator(".cm-content").focus();
   const mod = process.platform === "darwin" ? "Meta" : "Control";
   await page.keyboard.press(`${mod}+z`);
@@ -205,7 +229,7 @@ try {
   await placeTestWindow(app);
   await page.locator(".cm-content").waitFor();
   assert.equal(await page.locator(".cm-content").textContent(), text);
-  await page.getByRole("button", { name: "Preferences", exact: true }).click();
+  await openPreferences(app, page);
   assert.equal(
     await page.getByLabel("Appearance", { exact: true }).inputValue(),
     "system",
@@ -252,7 +276,7 @@ try {
   await placeTestWindow(app);
   await page.locator(".cm-content").waitFor();
   assert.equal(await page.locator(".cm-content").textContent(), text);
-  await page.getByRole("button", { name: "Preferences", exact: true }).click();
+  await openPreferences(app, page);
   assert.equal(
     await page
       .getByRole("button", { name: "Body font", exact: true })
@@ -282,7 +306,7 @@ try {
     true,
   );
   console.log(
-    "PASS: gear, shortcut, font mouse/Enter commit, arrow/Escape/outside isolation, repeated focus, color/font/appearance resets, reduced motion, undo and draft/settings restart",
+    "PASS: main menu, shortcut, font mouse/Enter commit, arrow/Escape/outside isolation, repeated focus, color/font/appearance resets, reduced motion, undo and draft/settings restart",
   );
 } finally {
   await app.evaluate(({ app }) => app.exit(0));

@@ -77,6 +77,7 @@ class DocumentStore {
           ...native,
           text: draft.text,
           dirty: !!draft.dirty,
+          formatted: draft.formatted === true,
           kind: ["text", "markdown"].includes(draft.kind)
             ? draft.kind
             : native.kind,

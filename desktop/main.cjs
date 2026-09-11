@@ -12,6 +12,7 @@ const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { DocumentStore, safeWrite } = require("./storage.cjs");
 const defaults = require("./defaults.json");
+const { shortcutFor } = require("./shortcuts.cjs");
 const profile = app.commandLine.getSwitchValue("user-data-dir");
 if (profile) {
   require("node:fs").mkdirSync(profile, { recursive: true });
@@ -50,7 +51,22 @@ app.on("open-file", (event, file) => {
   if (ready) win.webContents.send("action", "pending");
 });
 app.on("window-all-closed", () => app.quit());
-const action = (name) => () => win?.webContents.send("action", name);
+const action = (name) =>
+  Object.assign(() => win?.webContents.send("action", name), { command: name });
+function menuShortcuts(items) {
+  const shortcuts = require("./shortcuts.json");
+  for (const item of items) {
+    const match = shortcuts.find(
+      (entry) =>
+        entry.command === item.click?.command &&
+        !(entry.macOnly && process.platform !== "darwin") &&
+        !(entry.windowsOnly && process.platform === "darwin"),
+    );
+    if (match && !item.accelerator) item.accelerator = match.accelerator;
+    if (item.submenu) menuShortcuts(item.submenu);
+  }
+  return items;
+}
 function menu() {
   const file = {
     label: "File",
@@ -98,138 +114,139 @@ function menu() {
     ],
   };
   Menu.setApplicationMenu(
-    Menu.buildFromTemplate([
-      ...(process.platform === "darwin"
-        ? [
-            {
-              label: app.name,
-              submenu: [
-                { role: "about" },
-                { type: "separator" },
-                {
-                  label: "Preferences…",
-                  accelerator: "Cmd+,",
-                  click: action("settings"),
-                },
-                { type: "separator" },
-                { role: "services" },
-                { type: "separator" },
-                { role: "hide" },
-                { role: "hideOthers" },
-                { role: "unhide" },
-                { type: "separator" },
-                { role: "quit" },
-              ],
-            },
+    Menu.buildFromTemplate(
+      menuShortcuts([
+        ...(process.platform === "darwin"
+          ? [
+              {
+                label: app.name,
+                submenu: [
+                  { role: "about" },
+                  { type: "separator" },
+                  {
+                    label: "Preferences…",
+                    accelerator: "Cmd+,",
+                    click: action("settings"),
+                  },
+                  { type: "separator" },
+                  { role: "services" },
+                  { type: "separator" },
+                  { role: "hide" },
+                  { role: "hideOthers" },
+                  { role: "unhide" },
+                  { type: "separator" },
+                  { role: "quit" },
+                ],
+              },
+            ]
+          : []),
+        file,
+        { role: "editMenu" },
+        {
+          label: "Format",
+          submenu: [
+            ["Bold", "bold", "CmdOrCtrl+B"],
+            ["Italic", "italic", "CmdOrCtrl+I"],
+            ["Strikethrough", "strike"],
+            ["Insert or edit link…", "link", "CmdOrCtrl+K"],
+            ["Remove link", "unlink"],
+            ...Array.from({ length: 6 }, (_, i) => [
+              "Heading " + (i + 1),
+              "heading" + (i + 1),
+            ]),
+            ["Paragraph", "paragraph"],
+            ["Bullet list", "bullet"],
+            ["Numbered list", "number"],
+            ["Task list", "task"],
+            ["Blockquote", "quote"],
+            ["Inline code", "inline-code"],
+            ["Code block", "code-block"],
+            ["Horizontal rule", "rule"],
+            ["Clear formatting", "clear"],
           ]
-        : []),
-      file,
-      { role: "editMenu" },
-      {
-        label: "Format",
-        submenu: [
-          ["Bold", "bold", "CmdOrCtrl+B"],
-          ["Italic", "italic", "CmdOrCtrl+I"],
-          ["Strikethrough", "strike"],
-          ["Insert or edit link…", "link", "CmdOrCtrl+K"],
-          ["Remove link", "unlink"],
-          ...Array.from({ length: 6 }, (_, i) => [
-            "Heading " + (i + 1),
-            "heading" + (i + 1),
-          ]),
-          ["Paragraph", "paragraph"],
-          ["Bullet list", "bullet"],
-          ["Numbered list", "number"],
-          ["Task list", "task"],
-          ["Blockquote", "quote"],
-          ["Inline code", "inline-code"],
-          ["Code block", "code-block"],
-          ["Horizontal rule", "rule"],
-          ["Clear formatting", "clear"],
-        ]
-          .map(([label, name, accelerator]) => ({
-            label,
-            accelerator,
-            click: action("format-" + name),
-          }))
-          .concat([
-            { label: "Insert table", click: action("table-insert") },
-            ...[
-              "row",
-              "column",
-              "remove-row",
-              "remove-column",
-              "left",
-              "center",
-              "right",
-            ].map((name) => ({
-              label: "Table " + name.replaceAll("-", " "),
-              click: action("table-" + name),
+            .map(([label, name, accelerator]) => ({
+              label,
+              accelerator,
+              click: action("format-" + name),
+            }))
+            .concat([
+              { label: "Insert table", click: action("table-insert") },
+              ...[
+                "row",
+                "column",
+                "remove-row",
+                "remove-column",
+                "left",
+                "center",
+                "right",
+              ].map((name) => ({
+                label: "Table " + name.replaceAll("-", " "),
+                click: action("table-" + name),
+              })),
+            ]),
+        },
+        {
+          label: "View",
+          submenu: [
+            ...["live", "source", "read"].map((name) => ({
+              label: name[0].toUpperCase() + name.slice(1),
+              click: action("mode-" + name),
             })),
-          ]),
-      },
-      {
-        label: "View",
-        submenu: [
-          ...["live", "source", "read"].map((name) => ({
-            label: name[0].toUpperCase() + name.slice(1),
-            click: action("mode-" + name),
-          })),
-          { label: "Heading outline", click: action("outline") },
-          { label: "Read-only", click: action("read-only") },
-          { label: "Status bar", click: action("status-bar") },
+            { label: "Heading outline", click: action("outline") },
+            { label: "Read-only", click: action("read-only") },
+            { label: "Status bar", click: action("status-bar") },
 
-          {
-            label: "Find and replace",
-            accelerator: "CmdOrCtrl+F",
-            click: action("find"),
-          },
-          {
-            label: "Go to line",
-            accelerator: "CmdOrCtrl+L",
-            click: action("line"),
-          },
-          { role: "resetZoom" },
-          { role: "zoomIn" },
-          { role: "zoomOut" },
-          { role: "togglefullscreen" },
-          {
-            label: "Preferences…",
-            accelerator: process.platform === "darwin" ? undefined : "Ctrl+,",
-            click: action("settings"),
-          },
-        ],
-      },
-      {
-        label: "Help",
-        submenu: [
-          {
-            label: "About DEFT",
-            click: () =>
-              dialog.showMessageBox(win, {
-                message: "DEFT",
-                icon: path.join(__dirname, "../assets/icon.png"),
-                detail:
-                  "A fast, focused text and Markdown editor.\nLife Imitates Life\nVersion " +
-                  app.getVersion(),
-              }),
-          },
-          {
-            label: "Choose default apps",
-            click: () => {
-              if (process.platform === "win32")
-                shell.openExternal("ms-settings:defaultapps");
-              else
-                dialog.showMessageBox(win, {
-                  message: "Choose DEFT as a default app",
-                  detail:
-                    "In Finder, select a .md or .txt file. Choose Get Info, Open with DEFT, then Change All.",
-                });
+            {
+              label: "Find and replace",
+              accelerator: "CmdOrCtrl+F",
+              click: action("find"),
             },
-          },
-        ],
-      },
-    ]),
+            {
+              label: "Go to line",
+              accelerator: "CmdOrCtrl+G",
+              click: action("line"),
+            },
+            { label: "Replace…", click: action("replace") },
+            { label: "Toggle Source / Plain", click: action("toggle-source") },
+            { label: "Next tab", click: action("next-tab") },
+            { label: "Previous tab", click: action("previous-tab") },
+            { role: "resetZoom" },
+            { role: "zoomIn" },
+            { role: "zoomOut" },
+            { role: "togglefullscreen" },
+          ],
+        },
+        {
+          label: "Help",
+          submenu: [
+            {
+              label: "About DEFT",
+              click: () =>
+                dialog.showMessageBox(win, {
+                  message: "DEFT",
+                  icon: path.join(__dirname, "../assets/icon.png"),
+                  detail:
+                    "A fast, focused text and Markdown editor.\nLife Imitates Life\nVersion " +
+                    app.getVersion(),
+                }),
+            },
+            {
+              label: "Choose default apps",
+              click: () => {
+                if (process.platform === "win32")
+                  shell.openExternal("ms-settings:defaultapps");
+                else
+                  dialog.showMessageBox(win, {
+                    message: "Choose DEFT as a default app",
+                    detail:
+                      "In Finder, select a .md or .txt file. Choose Get Info, Open with DEFT, then Change All.",
+                  });
+              },
+            },
+          ],
+        },
+      ]),
+    ),
   );
 }
 function material(value) {
@@ -241,8 +258,10 @@ function material(value) {
     nativeTheme.shouldUseHighContrastColors ||
     nativeTheme.prefersReducedTransparency;
   const solid = value === "solid" || reduced || !supported;
+  const clearSupported = process.platform === "win32" && supported;
+  const blur = settings.backgroundBlur !== false || !clearSupported;
   if (process.platform === "win32" && supported)
-    win.setBackgroundMaterial(solid ? "none" : "acrylic");
+    win.setBackgroundMaterial(solid || !blur ? "none" : "acrylic");
   if (process.platform === "darwin")
     win.setVibrancy(solid ? null : "under-window");
   win.setBackgroundColor(
@@ -255,11 +274,16 @@ function material(value) {
   return {
     enabled: !solid,
     supported,
+    clearSupported,
     reason: reduced
       ? "System accessibility settings require a solid background."
       : !supported
         ? "Glass requires Windows 11 22H2 or macOS. Solid is used on this system."
-        : "Glass uses the system backdrop. Its blur and inactive-window appearance are controlled by the OS.",
+        : !clearSupported
+          ? "Glass uses the system backdrop. Clear translucency is currently available on Windows 11 only."
+          : blur
+            ? "Background blur uses Windows Acrylic. Its strength and inactive-window appearance are controlled by Windows."
+            : "Clear translucency uses your background opacity without Windows blur. Text and controls stay opaque.",
   };
 }
 function register(name, handler) {
@@ -429,6 +453,14 @@ if (locked)
         },
       });
       win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+      win.webContents.on("before-input-event", (event, input) => {
+        const command = shortcutFor(input);
+        if (!command) return;
+        // Consume before both Chromium and native menu accelerators, exactly once.
+        event.preventDefault();
+        if (command === "fullscreen") win.setFullScreen(!win.isFullScreen());
+        else action(command)();
+      });
       win.webContents.on("will-navigate", (event) => event.preventDefault());
       win.webContents.session.setPermissionRequestHandler(
         (wc, permission, callback, details) =>
@@ -592,6 +624,10 @@ if (locked)
       register("print", (html) => outputHtml(html, true));
       register("pdf", (html) => outputHtml(html, "pdf"));
       register("nativeCommand", (command) => {
+        if (command === "fullscreen") {
+          win.setFullScreen(!win.isFullScreen());
+          return;
+        }
         const edit = {
           "edit-undo": "undo",
           "edit-redo": "redo",

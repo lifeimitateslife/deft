@@ -4,6 +4,37 @@ import { EditorState } from "@codemirror/state";
 import { history, undo, redo } from "@codemirror/commands";
 import { exactSource, sourceHistory, sourceOf, normalize } from "../src/source";
 import { DocumentEditor } from "../src/editor";
+import { preferences } from "../src/preferences";
+test("caret formatting preserves source until typing and cannot enter frontmatter or code", () => {
+  const editor = new DocumentEditor(
+    {
+      id: "caret",
+      path: null,
+      name: "test.md",
+      kind: "markdown",
+      mode: "live",
+      text: "---\r\ntitle: test\r\n---\r\n\r\nplain\n",
+      encoding: "utf8",
+      bom: "",
+      fingerprint: null,
+      readOnly: false,
+    },
+    preferences(),
+    () => {},
+  );
+  const original = editor.doc.text;
+  editor.dispatch({ selection: { anchor: 10 } });
+  editor.format("bold");
+  assert.equal(editor.formatActive("bold"), false);
+  assert.equal(editor.doc.text, original);
+  editor.dispatch({ selection: { anchor: editor.state.doc.length } });
+  editor.format("bold");
+  assert.equal(editor.formatActive("bold"), true);
+  assert.equal(editor.doc.text, original);
+  editor.format("bold");
+  assert.equal(editor.formatActive("bold"), false);
+  assert.equal(editor.doc.text, original);
+});
 test("formatting through the editor keeps mixed endings in the actual document", () => {
   const editor = new DocumentEditor(
     {

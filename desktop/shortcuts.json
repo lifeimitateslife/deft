@@ -1,0 +1,133 @@
+[
+  { "command": "new-text", "key": "n", "accelerator": "CmdOrCtrl+N" },
+  {
+    "command": "new-markdown",
+    "key": "n",
+    "shift": true,
+    "accelerator": "CmdOrCtrl+Shift+N"
+  },
+  { "command": "new-text", "key": "t", "accelerator": "CmdOrCtrl+T" },
+  { "command": "close", "key": "w", "accelerator": "CmdOrCtrl+W" },
+  { "command": "open", "key": "o", "accelerator": "CmdOrCtrl+O" },
+  { "command": "save", "key": "s", "accelerator": "CmdOrCtrl+S" },
+  {
+    "command": "save-as",
+    "key": "s",
+    "shift": true,
+    "accelerator": "CmdOrCtrl+Shift+S"
+  },
+  { "command": "print", "key": "p", "accelerator": "CmdOrCtrl+P" },
+  { "command": "find", "key": "f", "accelerator": "CmdOrCtrl+F" },
+  {
+    "command": "replace",
+    "key": "h",
+    "accelerator": "CmdOrCtrl+H",
+    "windowsOnly": true
+  },
+  {
+    "command": "replace",
+    "key": "f",
+    "alt": true,
+    "accelerator": "Cmd+Alt+F",
+    "macOnly": true
+  },
+  { "command": "line", "key": "g", "accelerator": "CmdOrCtrl+G" },
+  { "command": "line", "key": "l", "accelerator": "CmdOrCtrl+L" },
+  { "command": "format-bold", "key": "b", "accelerator": "CmdOrCtrl+B" },
+  { "command": "format-italic", "key": "i", "accelerator": "CmdOrCtrl+I" },
+  { "command": "format-link", "key": "k", "accelerator": "CmdOrCtrl+K" },
+  { "command": "toggle-source", "key": "`", "accelerator": "CmdOrCtrl+`" },
+  {
+    "command": "next-tab",
+    "key": "Tab",
+    "control": true,
+    "accelerator": "Ctrl+Tab"
+  },
+  {
+    "command": "previous-tab",
+    "key": "Tab",
+    "control": true,
+    "shift": true,
+    "accelerator": "Ctrl+Shift+Tab"
+  },
+  { "command": "settings", "key": ",", "accelerator": "CmdOrCtrl+," },
+  {
+    "command": "fullscreen",
+    "key": "F11",
+    "unmodified": true,
+    "accelerator": "F11"
+  },
+  {
+    "command": "format-heading1",
+    "key": "1",
+    "alt": true,
+    "accelerator": "CmdOrCtrl+Alt+1"
+  },
+  {
+    "command": "format-heading2",
+    "key": "2",
+    "alt": true,
+    "accelerator": "CmdOrCtrl+Alt+2"
+  },
+  {
+    "command": "format-heading3",
+    "key": "3",
+    "alt": true,
+    "accelerator": "CmdOrCtrl+Alt+3"
+  },
+  {
+    "command": "format-heading4",
+    "key": "4",
+    "alt": true,
+    "accelerator": "CmdOrCtrl+Alt+4"
+  },
+  {
+    "command": "format-heading5",
+    "key": "5",
+    "alt": true,
+    "accelerator": "CmdOrCtrl+Alt+5"
+  },
+  {
+    "command": "format-heading6",
+    "key": "6",
+    "alt": true,
+    "accelerator": "CmdOrCtrl+Alt+6"
+  },
+  {
+    "command": "format-bullet",
+    "key": "8",
+    "shift": true,
+    "accelerator": "CmdOrCtrl+Shift+8"
+  },
+  {
+    "command": "format-number",
+    "key": "7",
+    "shift": true,
+    "accelerator": "CmdOrCtrl+Shift+7"
+  },
+  {
+    "command": "format-task",
+    "key": "9",
+    "shift": true,
+    "accelerator": "CmdOrCtrl+Shift+9"
+  },
+  {
+    "command": "format-quote",
+    "key": ".",
+    "shift": true,
+    "accelerator": "CmdOrCtrl+Shift+."
+  },
+  { "command": "format-inline-code", "key": "e", "accelerator": "CmdOrCtrl+E" },
+  {
+    "command": "format-code-block",
+    "key": "k",
+    "shift": true,
+    "accelerator": "CmdOrCtrl+Shift+K"
+  },
+  {
+    "command": "format-strike",
+    "key": "x",
+    "shift": true,
+    "accelerator": "CmdOrCtrl+Shift+X"
+  }
+]

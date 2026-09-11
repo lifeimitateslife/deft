@@ -5,6 +5,7 @@ export interface Document {
   path: string | null;
   name: string;
   kind?: Kind;
+  formatted?: boolean;
   text: string;
   encoding: string;
   bom: string;
@@ -34,6 +35,7 @@ export interface Settings {
   statusBar?: boolean;
   custom?: CustomTheme;
   glassOpacity?: number;
+  backgroundBlur?: boolean;
   fontFamily?: string;
   codeFontFamily?: string;
   recent: string[];

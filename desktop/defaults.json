@@ -2,6 +2,7 @@
   "appearance": "system",
   "material": "glass",
   "glassOpacity": 68,
+  "backgroundBlur": true,
   "fontFamily": "",
   "codeFontFamily": "",
   "fontSize": 16,

@@ -16,6 +16,7 @@ test("old preferences migrate without replacing custom data or unrelated prefere
   };
   const result = preferences(old);
   assert.equal(result.restoreSession, true);
+  assert.equal(result.backgroundBlur, true);
   assert.equal(result.appearance, "dark");
   assert.deepEqual(result.custom, old.custom);
   const reset = { ...result, ...appearanceDefaults };
@@ -29,6 +30,7 @@ test("appearance reset preserves reduced motion and unrelated settings across pe
     autosave: true,
     recent: ["keep.txt"],
     glassOpacity: 91,
+    backgroundBlur: false,
     fontFamily: "Georgia",
     fontSize: 24,
   });
@@ -42,4 +44,5 @@ test("appearance reset preserves reduced motion and unrelated settings across pe
   assert.equal(reset.fontFamily, "");
   assert.equal(reset.fontSize, 16);
   assert.equal(reset.glassOpacity, 68);
+  assert.equal(reset.backgroundBlur, true);
 });

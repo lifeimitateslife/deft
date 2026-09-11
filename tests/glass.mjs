@@ -8,6 +8,16 @@ const root = await fs.mkdtemp(path.resolve(".scratch/glass-"));
 const env = { ...process.env };
 delete env.ELECTRON_RUN_AS_NODE;
 const executablePath = process.env.DEFT_EXECUTABLE;
+const clearProbe = process.env.DEFT_PROBE_CLEAR === "1";
+if (clearProbe)
+  await fs.writeFile(
+    path.join(root, "settings.json"),
+    JSON.stringify({
+      backgroundBlur: false,
+      material: "glass",
+      glassOpacity: 0,
+    }),
+  );
 const app = await electron.launch({
   ...(executablePath ? { executablePath } : {}),
   args: [...(executablePath ? [] : ["."]), `--user-data-dir=${root}`],
@@ -32,6 +42,20 @@ try {
       });
     }
     globalThis.testMain = main;
+    const original = main.getBounds();
+    main.setSize(original.width - 40, original.height - 40);
+    if (main.getBounds().width !== original.width - 40 || !main.isResizable())
+      throw Error("Glass must remain resizable");
+    await new Promise((resolve) => {
+      main.once("maximize", resolve);
+      main.maximize();
+    });
+    if (!main.isMaximized()) throw Error("Glass must maximize");
+    await new Promise((resolve) => {
+      main.once("unmaximize", resolve);
+      main.unmaximize();
+    });
+    main.setBounds(original);
     const background = new BrowserWindow({
       title: "DEFT synthetic backdrop",
       ...main.getBounds(),
@@ -71,11 +95,28 @@ try {
             .getByLabel("Background opacity", { exact: true })
             .fill(String(opacity));
         await page.getByRole("button", { name: "Close Preferences" }).click();
+        await page.evaluate(() => window.deft.settings({}));
+        if (clearProbe && material === "glass") {
+          const persisted = await page.evaluate(() => window.deft.settings());
+          assert.equal(persisted.backgroundBlur, false);
+          assert.equal(persisted.glassOpacity, opacity);
+        }
         const samples = [];
-        for (const color of ["ffffff", "101010"]) {
+        for (const color of [
+          "ffffff",
+          "101010",
+          ...(material === "glass" && opacity === 0 ? ["pattern"] : []),
+        ]) {
           await app.evaluate(async (_, color) => {
+            const background =
+              color === "pattern"
+                ? "repeating-linear-gradient(90deg,#fff 0px,#fff 16px,#101010 16px,#101010 32px)"
+                : `#${color}`;
             await globalThis.testBackground.loadURL(
-              `data:text/html,<body style="margin:0;background:%23${color}"></body>`,
+              "data:text/html," +
+                encodeURIComponent(
+                  `<body style="margin:0;background:${background}"></body>`,
+                ),
             );
             globalThis.testBackground.showInactive();
             globalThis.testMain.show();
@@ -138,8 +179,23 @@ try {
             ),
             "Capture must contain the DEFT test marker, not another desktop/window",
           );
+          if (color === "pattern") {
+            const row = await sharp(bytes)
+              .extract({ left: 550, top: 400, width: 64, height: 1 })
+              .removeAlpha()
+              .raw()
+              .toBuffer();
+            let edge = 0;
+            for (let pixel = 3; pixel < row.length; pixel += 3)
+              edge = Math.max(edge, Math.abs(row[pixel] - row[pixel - 3]));
+            assert.ok(
+              clearProbe ? edge > 200 : edge < 80,
+              `Backdrop edge contrast ${edge}, clear=${clearProbe}`,
+            );
+            console.log(`Pattern edge contrast: ${edge}; blur=${!clearProbe}`);
+          }
           await fs.writeFile(
-            `test-results/glass-${appearance}-${material}-${opacity}-${color}.png`,
+            `test-results/${clearProbe ? "clear-probe" : "glass"}-${appearance}-${material}-${opacity}-${color}.png`,
             bytes,
           );
           const pixel = await sharp(bytes)
@@ -172,7 +228,9 @@ try {
     );
   }
   console.log(
-    "PASS: native background response decreases with opacity; Solid remains opaque",
+    clearProbe
+      ? "PROBE: backdrop responds with native material removed"
+      : "PASS: native background response decreases with opacity; Solid remains opaque",
     JSON.stringify(responses),
   );
 } finally {
