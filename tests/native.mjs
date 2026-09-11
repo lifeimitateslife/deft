@@ -41,11 +41,11 @@ try {
   );
   await page.emulateMedia({ colorScheme: "dark" });
   const dark = await page
-    .locator(".navigation")
+    .locator(".document")
     .evaluate((el) => getComputedStyle(el).backgroundColor);
   await page.emulateMedia({ colorScheme: "light" });
   const light = await page
-    .locator(".navigation")
+    .locator(".document")
     .evaluate((el) => getComputedStyle(el).backgroundColor);
   assert.notEqual(
     light,
