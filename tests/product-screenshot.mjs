@@ -30,9 +30,10 @@ try {
   const page = await app.firstWindow();
   await placeTestWindow(app);
   await page.locator(".cm-content").waitFor();
-  await app.evaluate(({ BrowserWindow }) =>
-    BrowserWindow.getAllWindows()[0].setSize(1180, 820),
-  );
+  if (process.env.DEFT_TEST_SECONDARY !== "1")
+    await app.evaluate(({ BrowserWindow }) =>
+      BrowserWindow.getAllWindows()[0].setSize(1180, 820),
+    );
   await placeTestWindow(app);
   await menuCommand(app, page, "View", "Read");
   await page

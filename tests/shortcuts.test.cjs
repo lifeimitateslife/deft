@@ -1,6 +1,15 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { shortcutFor } = require("../desktop/shortcuts.cjs");
+test("Mac Option-produced characters retain Command shortcut identity", () => {
+  assert.equal(
+    shortcutFor(
+      { type: "keyDown", key: "ƒ", code: "KeyF", meta: true, alt: true },
+      "darwin",
+    ),
+    "replace",
+  );
+});
 test("application shortcuts use Windows Ctrl and preserve macOS Hide Others", () => {
   const input = { type: "keyDown", key: "h", control: true };
   assert.equal(shortcutFor(input, "win32"), "replace");
