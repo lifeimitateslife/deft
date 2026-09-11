@@ -17,6 +17,7 @@ for (const test of [
   "tests/formatting-shortcuts.mjs",
   "tests/save-in-flight.mjs",
   "tests/clipboard.mjs",
+  "tests/update-notice.mjs",
 ]) {
   const result = spawnSync(process.execPath, [test], {
     stdio: "inherit",

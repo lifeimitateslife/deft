@@ -13,6 +13,11 @@ const { pathToFileURL } = require("node:url");
 const { DocumentStore, safeWrite } = require("./storage.cjs");
 const defaults = require("./defaults.json");
 const { shortcutFor } = require("./shortcuts.cjs");
+const updates = require("./updates.cjs").createUpdateChecker({
+  version: app.getVersion(),
+  platform: process.platform,
+  arch: process.arch,
+});
 const profile = app.commandLine.getSwitchValue("user-data-dir");
 if (profile) {
   require("node:fs").mkdirSync(profile, { recursive: true });
@@ -512,6 +517,11 @@ if (locked)
           settings,
           pending: pending.length > 0,
         };
+      });
+      register("updates", () => updates.check());
+      register("openUpdate", async () => {
+        const url = updates.page();
+        if (url) await shell.openExternal(url);
       });
       register("create", (kind) => store.create(kind));
       register("open", openFiles);

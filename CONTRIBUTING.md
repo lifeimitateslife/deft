@@ -54,6 +54,8 @@ Native tests launch real Electron windows. Set `DEFT_EXECUTABLE` to test an inst
 
 `tests/record-motion.mjs` records only its synthetic DEFT window. It is an explicit Windows visual acceptance task, not a background product capability. It enables capture only inside the disposable test process.
 
+`node tests/update-notice.mjs` exercises the real update checker, IPC bridge and notice UI. It substitutes only the clock, GitHub transport and browser opening inside the isolated test process. It covers offline/rate-limit behavior, daily caching, version dismissal across restarts and future release notices. The packaged suite runs it on Windows and both Mac architectures and saves a synthetic screenshot.
+
 ## Artwork
 
 `assets/icon-source.png` is the exact approved DEFT artwork. Do not redraw, vectorize, simplify or recolor it. `npm run icons` reproducibly resizes that source and emits PNG, ICO and ICNS files. Small icons use the same artwork. The product screenshot is a separate capture of the packaged application.

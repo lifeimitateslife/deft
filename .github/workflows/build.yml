@@ -63,6 +63,14 @@ jobs:
         if: runner.os == 'macOS'
         run: defaults write com.apple.universalaccess reduceTransparency -bool false
       - run: node scripts/package-test.cjs
+      - name: Save update notice evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deft-${{ matrix.platform }}-update-notice
+          path: .scratch/update-notice-*/notice.png
+          if-no-files-found: ignore
+          include-hidden-files: true
       - name: Verify Mac background compositing
         if: runner.os == 'macOS' && !cancelled()
         shell: bash

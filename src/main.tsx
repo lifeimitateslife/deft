@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ApplicationMenu } from "./ApplicationMenu";
 import { FormattingToolbar, LinkEditor } from "./FormattingToolbar";
+import { UpdateNotice } from "./UpdateNotice";
 import { Appearance } from "./Appearance";
 import brandIcon from "../assets/icon.png";
 import { fontStack, defaults } from "./preferences";
@@ -328,6 +329,7 @@ function App() {
           }}
         />
       )}
+      <UpdateNotice hidden={!!notice || panel || !!linkEditor} />
       {notice && (
         <div className="notice" role="status">
           <span>{notice}</span>

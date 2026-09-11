@@ -17,6 +17,14 @@ A focused text and Markdown editor for Windows and macOS. Open a file and start 
 
 ![The actual DEFT Windows application](docs/deft-windows.png)
 
+## Update notifications
+
+Starting with 0.2.5, DEFT quietly checks this repository's public GitHub releases on launch and at most once a day while running. When a newer numbered release has an installer for your Windows PC or Mac, a small notice offers **View update**. That opens the official release page; you download and install it yourself. DEFT does not replace itself or restart your work.
+
+Dismiss a notice to hide that version across restarts. Future versions can notify you again. Offline or rate-limited checks stay quiet. Public numbered prereleases are included because DEFT currently ships as a prerelease. Checks send an ordinary request to GitHub, with no document contents, filenames or account credentials.
+
+Install 0.2.5 manually once to receive future notices. Older versions do not have this feature.
+
 ## Install
 
 On Windows, the installer defaults to `C:\Program Files\DEFT`; choose Browse to use a custom folder. Installation requires administrator approval. Open the Mac disk image and drag DEFT into Applications. The application includes its runtime; Node.js, Git and developer tools are only needed to build from source.
