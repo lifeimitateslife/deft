@@ -21,6 +21,7 @@ Verdict: incomplete bundle signature repaired in a local development build; publ
 7. `npm test`: 26/26 passed. `npm run build`: passed, with existing Vite configuration and large-chunk warnings.
 8. `node scripts/package-test.cjs`: passed all nine packaged suites: native editing/export, second-instance handoff (39 deliveries), session recovery, last-tab behavior, appearance, preferences, formatting shortcuts, saves in flight, and clipboard. Synthetic documents and isolated test profiles were used.
 9. Changed executable/config files passed Prettier; workflow YAML parsed with all three platform matrix entries; `git diff --check` passed.
+10. The first PR CI run caught a second packaging path: electron-builder skips all signing during PR builds, including ad-hoc signing. The new signature gate rejected that output. The development packaging step now explicitly permits PR signing, with certificate discovery disabled and no signing secrets supplied. Public signing remains a separate tag/manual step.
 
 ## Review and limitations
 

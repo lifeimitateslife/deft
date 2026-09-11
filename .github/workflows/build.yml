@@ -47,6 +47,9 @@ jobs:
         run: npx electron-builder ${{ matrix.flags }} --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          # This step uses only an ad-hoc Mac identity and receives no secrets.
+          # electron-builder otherwise skips even ad-hoc signing on PRs.
+          CSC_FOR_PULL_REQUEST: "true"
       - name: Sign and notarize Mac release
         if: runner.os == 'macOS' && (startsWith(github.ref, 'refs/tags/') || inputs.signed_macos)
         run: npx electron-builder ${{ matrix.flags }} --config electron-builder.mac-release.cjs --publish never
