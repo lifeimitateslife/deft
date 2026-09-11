@@ -95,7 +95,9 @@ try {
   const env = { ...process.env };
   delete env.ELECTRON_RUN_AS_NODE;
   app = await electron.launch({
-    executablePath: path.join(process.env.ProgramFiles, "DEFT", "DEFT.exe"),
+    executablePath:
+      process.env.DEFT_EXECUTABLE ||
+      path.join(process.env.ProgramFiles, "DEFT", "DEFT.exe"),
     env,
     args: [],
   });

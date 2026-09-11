@@ -6,14 +6,12 @@ By **LIFE IMITATES LIFE**
 
 A focused text and Markdown editor for Windows and macOS. Open a file and start writing, without an account, vault, server or subscription.
 
-The interface and behavior below describe the upcoming 0.2.0 build. The currently published 0.1.2 downloads do not yet contain these changes.
-
 <!-- downloads:start -->
-**0.1.2 prerelease**
+**0.2.0 prerelease**
 
-- [Download for Windows (.exe, x64)](https://github.com/lifeimitateslife/deft/releases/download/v0.1.2/DEFT.Setup.0.1.2.exe)
-- [Download for Mac (Apple Silicon)](https://github.com/lifeimitateslife/deft/releases/download/v0.1.2/DEFT-0.1.2-arm64.dmg)
-- [Download for Mac (Intel)](https://github.com/lifeimitateslife/deft/releases/download/v0.1.2/DEFT-0.1.2-x64.dmg)
+- [Download for Windows (.exe, x64)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.0/DEFT.Setup.0.2.0.exe)
+- [Download for Mac (Apple Silicon)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.0/DEFT-0.2.0-arm64.dmg)
+- [Download for Mac (Intel)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.0/DEFT-0.2.0-x64.dmg)
 - [All releases](https://github.com/lifeimitateslife/deft/releases)
 <!-- downloads:end -->
 
@@ -23,7 +21,7 @@ The interface and behavior below describe the upcoming 0.2.0 build. The currentl
 
 On Windows, the installer defaults to `C:\Program Files\DEFT`; choose Browse to use a custom folder. Installation requires administrator approval. Open the Mac disk image and drag DEFT into Applications. The application includes its runtime; Node.js, Git and developer tools are only needed to build from source.
 
-The [0.1.2 prerelease](https://github.com/lifeimitateslife/deft/releases/tag/v0.1.2) includes checksums, a claim audit, and verification evidence. Try copies of your own files before choosing DEFT as your everyday default.
+The [0.2.0 prerelease](https://github.com/lifeimitateslife/deft/releases/tag/v0.2.0) includes checksums, a claim audit, and verification evidence. Try copies of your own files before choosing DEFT as your everyday default.
 
 Builds are unsigned. Windows may show an unknown-publisher warning. Verify the release checksum before choosing to run the installer. On macOS, drag DEFT to Applications. If macOS blocks this unsigned application, use System Settings > Privacy & Security > Open Anyway for DEFT. Do not disable system security.
 

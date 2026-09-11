@@ -2,11 +2,11 @@
 
 This page records the scope of testing, not a guarantee against every filesystem or OS failure.
 
-## 0.2.0 candidate
+## 0.2.0 release
 
-The current source has 21 passing unit tests. Packaged Windows tests cover the compact menus, installed fonts, custom colors, session restore and deliberate discard, shutdown locking, and prior file-handoff behavior. Three consecutive installed runs each passed 123 handoffs. Actual Windows compositor captures show the background affects Glass while Solid remains unchanged. Revo 2.6.0 displayed DEFT 0.2.0, the approved icon and LIFE IMITATES LIFE publisher.
+The source has 21 passing unit tests. Packaged Windows tests cover compact menus, installed fonts, custom colors, session restore and deliberate discard, shutdown locking, and file-handoff behavior. Three consecutive installed-candidate runs each passed 123 handoffs. Separately, three runs against the freshly extracted final CI installer each passed 123 handoffs. The final artifact also passed native editing, export, session, appearance and compositor tests locally. Revo 2.6.0 displayed the installed candidate, approved icon and LIFE IMITATES LIFE publisher.
 
-The installer now defaults to Program Files and permits a custom folder. Installation and final release acceptance are recorded with the versioned release evidence. No clean Windows virtual machine without developer tools was available; bundled-runtime structure does not substitute for that acceptance test.
+The installer defaults to Program Files and permits a custom folder. Its elevated destination chooser was observed, but migration completion requires owner interaction. The per-user candidate passed actual Windows ShellExecuteEx txt/md cold launch, seven successive opens and save-close-reopen. See the [versioned artifact audit](https://github.com/lifeimitateslife/deft/releases/download/v0.2.0/CLAIM-AUDIT.md) for evidence and remaining gaps. No clean Windows virtual machine without developer tools was available; bundled-runtime structure does not substitute for that acceptance test.
 
 ## Local Windows checks
 
