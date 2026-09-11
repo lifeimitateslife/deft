@@ -4,6 +4,9 @@ const executable =
   process.platform === "win32"
     ? "release/win-unpacked/DEFT.exe"
     : `release/mac${process.arch === "arm64" ? "-arm64" : ""}/DEFT.app/Contents/MacOS/DEFT`;
+if (process.platform === "darwin") {
+  require("./verify-mac.cjs").verifyMac(path.resolve(executable, "../../.."));
+}
 for (const test of [
   "tests/native.mjs",
   "tests/second-instance.mjs",

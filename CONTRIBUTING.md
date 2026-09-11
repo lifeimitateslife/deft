@@ -17,6 +17,8 @@ npm start
 
 `npm run package` builds the NSIS Windows installer (Program Files by default, with a custom destination chooser) or macOS DMG on its corresponding OS. GitHub Actions builds Windows x64, macOS Apple Silicon and macOS Intel packages. The runtime and required production dependencies travel with the application.
 
+Mac development builds use an ad-hoc signature to seal the finished application. This fixes incomplete Electron signatures, but is not approval for public distribution. Public Mac downloads require a Developer ID Application certificate and Apple notarization. See [Mac signing and release checks](docs/mac-signing.md).
+
 ## Architecture and document safety
 
 Electron owns native operations in `desktop/`. React and CodeMirror own the interface in `src/`. Each document retains an exact source string; editor transactions apply targeted patches. Rendered Markdown is never the saved representation.
