@@ -4,7 +4,12 @@ const executable =
   process.platform === "win32"
     ? "release/win-unpacked/DEFT.exe"
     : `release/mac${process.arch === "arm64" ? "-arm64" : ""}/DEFT.app/Contents/MacOS/DEFT`;
-for (const test of ["tests/native.mjs", "tests/second-instance.mjs"]) {
+for (const test of [
+  "tests/native.mjs",
+  "tests/second-instance.mjs",
+  "tests/session.mjs",
+  "tests/appearance.mjs",
+]) {
   const result = spawnSync(process.execPath, [test], {
     stdio: "inherit",
     env: { ...process.env, DEFT_EXECUTABLE: path.resolve(executable) },

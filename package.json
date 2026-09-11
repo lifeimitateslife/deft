@@ -1,8 +1,10 @@
 {
   "name": "deft",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "A fast, focused text and Markdown editor.",
-  "author": "lifeimitateslife",
+  "author": {
+    "name": "LIFE IMITATES LIFE"
+  },
   "license": "MIT",
   "private": true,
   "main": "desktop/main.cjs",
@@ -16,7 +18,8 @@
     "notices": "node scripts/notices.cjs",
     "format:check": "prettier --check src desktop tests scripts",
     "icons": "node scripts/icons.cjs",
-    "test:handoff": "node tests/second-instance.mjs"
+    "test:handoff": "node tests/second-instance.mjs",
+    "test:session": "node tests/session.mjs"
   },
   "build": {
     "appId": "life.lifeimitateslife.deft",
@@ -46,7 +49,7 @@
     },
     "nsis": {
       "oneClick": false,
-      "perMachine": false,
+      "perMachine": true,
       "allowToChangeInstallationDirectory": true,
       "deleteAppDataOnUninstall": false,
       "include": "assets/installer.nsh"
@@ -84,7 +87,8 @@
         "from": "assets/document.ico",
         "to": "document.ico"
       }
-    ]
+    ],
+    "copyright": "Copyright © 2026 LIFE IMITATES LIFE"
   },
   "dependencies": {
     "iconv-lite": "^0.7.3"

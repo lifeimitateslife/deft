@@ -65,6 +65,18 @@ function menu() {
         click: action("new-markdown"),
       },
       { label: "Open…", accelerator: "CmdOrCtrl+O", click: action("open") },
+      {
+        label: "New tab",
+        accelerator: "CmdOrCtrl+T",
+        click: action("new-text"),
+      },
+      {
+        label: "Recent Files",
+        submenu: (settings.recent || []).map((file) => ({
+          label: path.basename(file),
+          click: action("recent:" + file),
+        })),
+      },
       { type: "separator" },
       { label: "Save", accelerator: "CmdOrCtrl+S", click: action("save") },
       {
@@ -73,6 +85,7 @@ function menu() {
         click: action("save-as"),
       },
       { label: "Export HTML…", click: action("export") },
+      { label: "Save as PDF…", click: action("pdf") },
       { label: "Print…", accelerator: "CmdOrCtrl+P", click: action("print") },
       { type: "separator" },
       {
@@ -89,8 +102,59 @@ function menu() {
       file,
       { role: "editMenu" },
       {
+        label: "Format",
+        submenu: [
+          ["Bold", "bold", "CmdOrCtrl+B"],
+          ["Italic", "italic", "CmdOrCtrl+I"],
+          ["Strikethrough", "strike"],
+          ["Insert or edit link…", "link", "CmdOrCtrl+K"],
+          ["Remove link", "unlink"],
+          ...Array.from({ length: 6 }, (_, i) => [
+            "Heading " + (i + 1),
+            "heading" + (i + 1),
+          ]),
+          ["Paragraph", "paragraph"],
+          ["Bullet list", "bullet"],
+          ["Numbered list", "number"],
+          ["Task list", "task"],
+          ["Blockquote", "quote"],
+          ["Inline code", "inline-code"],
+          ["Code block", "code-block"],
+          ["Horizontal rule", "rule"],
+          ["Clear formatting", "clear"],
+        ]
+          .map(([label, name, accelerator]) => ({
+            label,
+            accelerator,
+            click: action("format-" + name),
+          }))
+          .concat([
+            { label: "Insert table", click: action("table-insert") },
+            ...[
+              "row",
+              "column",
+              "remove-row",
+              "remove-column",
+              "left",
+              "center",
+              "right",
+            ].map((name) => ({
+              label: "Table " + name.replaceAll("-", " "),
+              click: action("table-" + name),
+            })),
+          ]),
+      },
+      {
         label: "View",
         submenu: [
+          ...["live", "source", "read"].map((name) => ({
+            label: name[0].toUpperCase() + name.slice(1),
+            click: action("mode-" + name),
+          })),
+          { label: "Heading outline", click: action("outline") },
+          { label: "Read-only", click: action("read-only") },
+          { label: "Status bar", click: action("status-bar") },
+
           {
             label: "Find and replace",
             accelerator: "CmdOrCtrl+F",
@@ -120,6 +184,7 @@ function menu() {
             click: () =>
               dialog.showMessageBox(win, {
                 message: "DEFT",
+                icon: path.join(__dirname, "../assets/icon.png"),
                 detail:
                   "A fast, focused text and Markdown editor.\nLIFE IMITATES LIFE\nVersion " +
                   app.getVersion(),
@@ -144,11 +209,34 @@ function menu() {
   );
 }
 function material(value) {
-  const solid = value === "solid" || nativeTheme.shouldUseHighContrastColors;
-  if (process.platform === "win32")
-    win.setBackgroundMaterial(solid ? "none" : "mica");
-  if (process.platform === "darwin") win.setVibrancy(solid ? null : "sidebar");
-  return process.platform === "win32" || process.platform === "darwin";
+  const supported =
+    process.platform === "darwin" ||
+    (process.platform === "win32" &&
+      Number(require("node:os").release().split(".")[2]) >= 22621);
+  const reduced =
+    nativeTheme.shouldUseHighContrastColors ||
+    nativeTheme.prefersReducedTransparency;
+  const solid = value === "solid" || reduced || !supported;
+  if (process.platform === "win32" && supported)
+    win.setBackgroundMaterial(solid ? "none" : "acrylic");
+  if (process.platform === "darwin")
+    win.setVibrancy(solid ? null : "under-window");
+  win.setBackgroundColor(
+    solid
+      ? nativeTheme.shouldUseDarkColors
+        ? "#101113"
+        : "#ffffff"
+      : "#00000000",
+  );
+  return {
+    enabled: !solid,
+    supported,
+    reason: reduced
+      ? "System accessibility settings require a solid background."
+      : !supported
+        ? "Glass requires Windows 11 22H2 or macOS. Solid is used on this system."
+        : "Glass uses the system backdrop. Its blur and inactive-window appearance are controlled by the OS.",
+  };
 }
 function register(name, handler) {
   ipcMain.handle(`deft:${name}`, async (event, ...args) => {
@@ -201,6 +289,7 @@ async function openFiles(files) {
     }
   }
   await saveSettings();
+  if (process.platform === "darwin") menu();
   return opened;
 }
 async function saveSettings() {
@@ -318,8 +407,29 @@ if (locked)
       win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
       win.webContents.on("will-navigate", (event) => event.preventDefault());
       win.webContents.session.setPermissionRequestHandler(
-        (_wc, _permission, callback) => callback(false),
+        (wc, permission, callback, details) =>
+          callback(
+            wc === win.webContents &&
+              permission === "local-fonts" &&
+              details.isMainFrame === true &&
+              details.requestingUrl ===
+                pathToFileURL(path.join(__dirname, "../dist/index.html")).href,
+          ),
       );
+      win.webContents.session.setPermissionCheckHandler(
+        (wc, permission, _origin, details) =>
+          wc === win.webContents &&
+          permission === "local-fonts" &&
+          details.isMainFrame === true &&
+          details.requestingUrl ===
+            pathToFileURL(path.join(__dirname, "../dist/index.html")).href,
+      );
+      nativeTheme.on("updated", () => {
+        if (!win.isDestroyed()) {
+          material(settings.material);
+          win.webContents.send("action", "material-updated");
+        }
+      });
       win.on("close", (event) => {
         if (!allowClose) {
           event.preventDefault();
@@ -388,6 +498,7 @@ if (locked)
         store.acceptReload(id, fingerprint),
       );
       register("settings", async (value) => {
+        if (value === undefined) return settings;
         settings = { ...settings, ...value };
         await saveSettings();
         material(settings.material);
@@ -456,7 +567,55 @@ if (locked)
       register("export", (html) => outputHtml(html));
       register("print", (html) => outputHtml(html, true));
       register("pdf", (html) => outputHtml(html, "pdf"));
+      register("nativeCommand", (command) => {
+        const edit = {
+          "edit-undo": "undo",
+          "edit-redo": "redo",
+          "edit-cut": "cut",
+          "edit-copy": "copy",
+          "edit-paste": "paste",
+          "edit-selectAll": "selectAll",
+        }[command];
+        if (edit) {
+          win.webContents[edit]();
+          return;
+        }
+        if (["zoom-in", "zoom-out", "zoom-reset"].includes(command)) {
+          win.webContents.setZoomLevel(
+            command === "zoom-reset"
+              ? 0
+              : Math.max(
+                  -2,
+                  Math.min(
+                    3,
+                    win.webContents.getZoomLevel() +
+                      (command === "zoom-in" ? 0.5 : -0.5),
+                  ),
+                ),
+          );
+          return;
+        }
+        if (command === "about")
+          return dialog.showMessageBox(win, {
+            message: "DEFT",
+            detail:
+              "A fast, focused text and Markdown editor.\nLIFE IMITATES LIFE\nVersion " +
+              app.getVersion(),
+            icon: path.join(__dirname, "../assets/icon.png"),
+          });
+        if (command === "default-apps") {
+          if (process.platform === "win32")
+            return shell.openExternal("ms-settings:defaultapps");
+          return dialog.showMessageBox(win, {
+            message: "Choose DEFT as a default app",
+            detail:
+              "In Finder, select a file, choose Get Info, Open with DEFT, then Change All.",
+          });
+        }
+        throw new Error("Unknown application command.");
+      });
       menu();
+      if (process.platform !== "darwin") win.removeMenu();
       material(settings.material || "glass");
       await win.loadFile(path.join(__dirname, "../dist/index.html"));
     })

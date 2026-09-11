@@ -2,6 +2,12 @@
 
 This page records the scope of testing, not a guarantee against every filesystem or OS failure.
 
+## 0.2.0 candidate
+
+The current source has 21 passing unit tests. Packaged Windows tests cover the compact menus, installed fonts, custom colors, session restore and deliberate discard, shutdown locking, and prior file-handoff behavior. Three consecutive installed runs each passed 123 handoffs. Actual Windows compositor captures show the background affects Glass while Solid remains unchanged. Revo 2.6.0 displayed DEFT 0.2.0, the approved icon and LIFE IMITATES LIFE publisher.
+
+The installer now defaults to Program Files and permits a custom folder. Installation and final release acceptance are recorded with the versioned release evidence. No clean Windows virtual machine without developer tools was available; bundled-runtime structure does not substitute for that acceptance test.
+
 ## Local Windows checks
 
 Storage tests cover byte-identical round trips, UTF-8 BOM and UTF-16, mixed endings, legacy encoding refusal, external conflicts, case aliases, queued writes, recovery identity, and discarding one tab while retaining another draft.
@@ -12,7 +18,7 @@ Electron workflow tests use real synthetic files and native filesystem operation
 
 The tests use Playwright's Electron driver. No custom test driver or automation endpoint is included in the installed application. Native file-dialog and installer acceptance are recorded separately from these automated workflows.
 
-## Release acceptance
+## Historical 0.1.2 release acceptance
 
 The Windows release candidate installed successfully per user. Registry snapshots before and after installation showed no changes to the five registered extensions' existing default or UserChoice values. DEFT's quoted executable command and OpenWithProgids registration were present. The installed executable passed the native workflow suite with an isolated profile and synthetic documents. The 0.1.0 intermittent second-instance failure was reproduced and isolated in 0.1.2: overlapping settings replacements could fail with EPERM before opened documents reached the renderer. Settings writes now use the existing native write queue. Pending notifications no longer fall back to the file picker, and native activation runs after the handoff callback. A settings-only negative control reproduces the missing-tab timeout; five fixed source runs passed 615 handoffs. Release-specific packaged and installed acceptance is attached to the release.
 

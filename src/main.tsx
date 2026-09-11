@@ -1,4 +1,9 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { ApplicationMenu } from "./ApplicationMenu";
+import { FormattingToolbar, LinkEditor } from "./FormattingToolbar";
+import { Appearance } from "./Appearance";
+import brandIcon from "../assets/icon.png";
+import { fontStack } from "./preferences";
 import { createRoot } from "react-dom/client";
 import { useWorkbench } from "./useWorkbench";
 import type { Mode } from "./types";
@@ -12,6 +17,8 @@ function App() {
     settings,
     panel,
     setPanel,
+    linkEditor,
+    setLinkEditor,
     outline,
     setOutline,
     notice,
@@ -37,192 +44,144 @@ function App() {
     update,
     report,
   } = useWorkbench();
+  const settingsPanel = useRef<HTMLElement>(null);
+
+  const [settingsVisit, setSettingsVisit] = useState(0);
+  useEffect(() => {
+    if (!panel) {
+      if (settingsPanel.current?.contains(document.activeElement))
+        (
+          document.querySelector(
+            ".application-menu > button",
+          ) as HTMLButtonElement | null
+        )?.focus();
+      return;
+    }
+    setSettingsVisit((visit) => visit + 1);
+    settingsPanel.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    const dismiss = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (
+        !settingsPanel.current?.contains(target) &&
+        !document.querySelector(".application-menu")?.contains(target)
+      ) {
+        setPanel(false);
+        if (settingsPanel.current?.contains(document.activeElement))
+          (
+            document.querySelector(
+              ".application-menu > button",
+            ) as HTMLButtonElement | null
+          )?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
+  }, [panel]);
+  const dismissSettings = () => {
+    setPanel(false);
+    (
+      document.querySelector(
+        ".application-menu > button",
+      ) as HTMLButtonElement | null
+    )?.focus();
+  };
+  const [material, setMaterial] = useState({
+    enabled: false,
+    reason: "Checking system backdrop…",
+  });
+  useEffect(() => {
+    const refreshMaterial = () =>
+      window.deft.material(settings.material).then(setMaterial).catch(report);
+    void refreshMaterial();
+    return window.deft.onAction((action: string) => {
+      if (action === "material-updated") void refreshMaterial();
+    });
+  }, [settings.material]);
+  const custom = settings.appearance === "custom" ? settings.custom : undefined;
+  const theme = {
+    ...(custom
+      ? {
+          "--chrome": custom.chrome,
+          "--paper": custom.paper,
+          "--text": custom.text,
+          "--accent": custom.accent,
+        }
+      : {}),
+    "--glass-tint": `${settings.glassOpacity ?? 68}%`,
+    "--body-font": fontStack(settings.fontFamily),
+    "--code-font": fontStack(settings.codeFontFamily, true),
+    "--body-size": `${settings.fontSize}px`,
+  } as React.CSSProperties;
   return (
     <main
+      style={theme}
+      data-glass={material.enabled}
       data-appearance={settings.appearance}
       data-material={settings.material}
       data-reduced-motion={settings.reducedMotion}
     >
-      <header>
-        <div className="tools">
-          <button
-            title="Open file (Ctrl/Cmd+O)"
-            onClick={() => void command("open")}
-          >
-            Open
-          </button>
-          <button title="New text document" onClick={() => void newDoc("text")}>
-            New text
-          </button>
-          <button
-            title="New Markdown document"
-            onClick={() => void newDoc("markdown")}
-          >
-            New Markdown
-          </button>
-          <span className="divider" />
-          <button disabled={!current || busy} onClick={() => void save()}>
-            Save
-          </button>
-          <button disabled={!current} onClick={() => void save(current, true)}>
-            Save as
-          </button>
-        </div>
+      <div className="navigation">
+        <ApplicationMenu
+          current={current}
+          settings={settings}
+          command={command}
+          open={open}
+        />
+        <nav className="tabs" aria-label="Open documents">
+          {tabs.map((tab) => (
+            <div
+              key={tab.doc.id}
+              className={`tab ${tab === current ? "active" : ""}`}
+            >
+              <button
+                aria-pressed={tab === current}
+                title={tab.doc.path || "Unsaved document"}
+                onClick={() => setActive(tab.doc.id)}
+              >
+                {tab.doc.dirty ? (
+                  <span className="dirty" aria-label="Unsaved changes">
+                    ●
+                  </span>
+                ) : (
+                  <span className="filemark">
+                    {tab.doc.kind === "markdown" ? "M" : "T"}
+                  </span>
+                )}
+                {tab.doc.name}
+              </button>
+              <button
+                aria-label={`Close ${tab.doc.name}`}
+                onClick={() => void close(tab)}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </nav>
         <button
-          aria-label="Settings"
-          aria-expanded={panel}
-          onClick={() => setPanel(!panel)}
+          className="new-tab"
+          aria-label="New text tab"
+          title="New text tab (Ctrl/Cmd+T)"
+          onClick={() => void command("new-text")}
         >
-          ⚙
+          +
         </button>
-      </header>
-      <nav className="tabs" aria-label="Open documents">
-        {tabs.map((tab) => (
-          <div
-            key={tab.doc.id}
-            className={`tab ${tab === current ? "active" : ""}`}
-          >
-            <button
-              aria-pressed={tab === current}
-              title={tab.doc.path || "Unsaved document"}
-              onClick={() => setActive(tab.doc.id)}
-            >
-              {tab.doc.dirty ? (
-                <span className="dirty" aria-label="Unsaved changes">
-                  ●
-                </span>
-              ) : (
-                <span className="filemark">
-                  {tab.doc.kind === "markdown" ? "M" : "T"}
-                </span>
-              )}
-              {tab.doc.name}
-            </button>
-            <button
-              aria-label={`Close ${tab.doc.name}`}
-              onClick={() => void close(tab)}
-            >
-              ×
-            </button>
-          </div>
-        ))}
-      </nav>
+      </div>
       {current ? (
         <>
-          <div className="document-toolbar">
-            <div>
-              {current.doc.kind === "markdown" && (
-                <>
-                  <button
-                    aria-label="Toggle heading outline"
-                    aria-expanded={outline}
-                    onClick={() => setOutline(!outline)}
-                  >
-                    ☰
-                  </button>
-                  <button
-                    title="Bold"
-                    disabled={
-                      current.doc.readOnly || current.doc.mode === "read"
-                    }
-                    onClick={() => current.insert("**", "**")}
-                  >
-                    <b>B</b>
-                  </button>
-                  <button
-                    title="Italic"
-                    disabled={
-                      current.doc.readOnly || current.doc.mode === "read"
-                    }
-                    onClick={() => current.insert("*", "*")}
-                  >
-                    <i>I</i>
-                  </button>
-                  <button
-                    title="Insert link"
-                    disabled={
-                      current.doc.readOnly || current.doc.mode === "read"
-                    }
-                    onClick={() =>
-                      current.insert("[", "](https://example.com)")
-                    }
-                  >
-                    Link
-                  </button>
-                  <button
-                    title="Insert task"
-                    disabled={
-                      current.doc.readOnly || current.doc.mode === "read"
-                    }
-                    onClick={() => current.insert("- [ ] ")}
-                  >
-                    Task
-                  </button>
-                  <button
-                    title="Insert table"
-                    disabled={
-                      current.doc.readOnly || current.doc.mode === "read"
-                    }
-                    onClick={() =>
-                      current.insert(
-                        "\n| Column | Column |\n| --- | --- |\n| Text | Text |\n",
-                      )
-                    }
-                  >
-                    Table
-                  </button>
-                  <button
-                    title="Add a row to the table at the caret"
-                    disabled={
-                      current.doc.readOnly ||
-                      current.doc.mode === "read" ||
-                      !current.selectedTable
-                    }
-                    onClick={() => current.table("row")}
-                  >
-                    + Row
-                  </button>
-                  <button
-                    title="Add a column to the table at the caret"
-                    disabled={
-                      current.doc.readOnly ||
-                      current.doc.mode === "read" ||
-                      !current.selectedTable
-                    }
-                    onClick={() => current.table("column")}
-                  >
-                    + Column
-                  </button>
-                </>
-              )}
+          {current.doc.readOnly && (
+            <div className="readonly-notice" role="status">
+              Read-only{" "}
+              <button onClick={() => void command("read-only")}>
+                Enable editing
+              </button>
             </div>
-            <div className="view-switch" aria-label="Document view">
-              {(current.doc.kind === "markdown"
-                ? ["live", "source", "read"]
-                : ["source"]
-              ).map((value) => (
-                <button
-                  key={value}
-                  aria-pressed={current.doc.mode === value}
-                  onClick={() => mode(value as Mode)}
-                >
-                  {value === "source" && current.doc.kind === "text"
-                    ? "Text"
-                    : value[0].toUpperCase() + value.slice(1)}
-                </button>
-              ))}
-            </div>
-            <button
-              aria-pressed={current.doc.readOnly}
-              onClick={() => {
-                current.doc.readOnly = !current.doc.readOnly;
-                current.configure(settings);
-                update();
-              }}
-            >
-              {current.doc.readOnly ? "Read-only" : "Editable"}
-            </button>
-          </div>
+          )}
+          <ContextualFormat
+            editor={current}
+            command={command}
+            hidden={panel || !!linkEditor}
+          />
           <div className="workspace">
             {outline && current.doc.kind === "markdown" && (
               <aside aria-label="Heading outline">
@@ -279,7 +238,7 @@ function App() {
               )}
             </div>
           </div>
-          <footer>
+          <footer hidden={settings.statusBar === false}>
             <span>
               {busy
                 ? "Saving…"
@@ -306,6 +265,7 @@ function App() {
                     : "LF"}
             </span>
             <span>{current.doc.text.length.toLocaleString()} characters</span>
+            {current.doc.kind === "markdown" && <span>{current.doc.mode}</span>}
             <button onClick={() => void window.deft.reveal(current.doc.id)}>
               Reveal file
             </button>
@@ -350,6 +310,19 @@ function App() {
           <small>LIFE IMITATES LIFE</small>
         </section>
       )}
+      {linkEditor && (
+        <LinkEditor
+          href={linkEditor.link}
+          cancel={() => {
+            setLinkEditor(null);
+            linkEditor.view?.focus();
+          }}
+          apply={(href) => {
+            linkEditor.format("link", href);
+            setLinkEditor(null);
+          }}
+        />
+      )}
       {notice && (
         <div className="notice" role="status">
           <span>{notice}</span>
@@ -361,114 +334,140 @@ function App() {
           </button>
         </div>
       )}
-      {panel && (
-        <section className="settings" aria-label="Settings">
-          <div className="settings-title">
-            <h2>Settings</h2>
-            <button aria-label="Close settings" onClick={() => setPanel(false)}>
-              ×
-            </button>
+      <section
+        ref={settingsPanel}
+        id="settings-panel"
+        className="settings"
+        aria-label="Settings"
+        hidden={!panel}
+        inert={!panel}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            event.stopPropagation();
+            dismissSettings();
+          }
+        }}
+      >
+        <div className="settings-title">
+          <h2>Preferences</h2>
+          <button aria-label="Close settings" onClick={dismissSettings}>
+            ×
+          </button>
+        </div>
+        <div className="preferences-brand">
+          <img
+            src={brandIcon}
+            width="52"
+            height="52"
+            alt="DEFT document icon"
+          />
+          <div>
+            <strong>DEFT</strong>
+            <small>LIFE IMITATES LIFE</small>
           </div>
-          <label>
-            Appearance
-            <select
-              aria-label="Appearance"
-              value={settings.appearance}
-              onChange={(event) =>
-                void configure({ appearance: event.target.value as any })
+        </div>
+        <Appearance
+          key={settingsVisit}
+          settings={settings}
+          configure={configure}
+          material={material}
+        />
+        <h3>Editing</h3>
+        {(["wrap", "lines", "autosave", "restoreSession"] as const).map(
+          (key, index) => (
+            <label key={key}>
+              {
+                [
+                  "Word wrap",
+                  "Line numbers",
+                  "Autosave named files",
+                  "Restore previous session",
+                ][index]
               }
-            >
-              <option value="system">System</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
-          </label>
-          <label>
-            Material
-            <select
-              aria-label="Material"
-              value={settings.material}
-              onChange={(event) =>
-                void configure({ material: event.target.value as any })
-              }
-            >
-              <option value="glass">Glass</option>
-              <option value="solid">Solid</option>
-            </select>
-          </label>
-          {(["wrap", "lines", "reducedMotion", "autosave"] as const).map(
-            (key, index) => (
-              <label key={key}>
-                {
-                  [
-                    "Word wrap",
-                    "Line numbers",
-                    "Reduce motion",
-                    "Autosave named files",
-                  ][index]
+              <input
+                type="checkbox"
+                checked={settings[key] !== false}
+                onChange={(event) =>
+                  void configure({ [key]: event.target.checked })
                 }
-                <input
-                  type="checkbox"
-                  checked={settings[key]}
-                  onChange={(event) =>
-                    void configure({ [key]: event.target.checked })
-                  }
-                />
-              </label>
-            ),
-          )}
-          <label>
-            Text size
-            <input
-              aria-label="Text size"
-              type="number"
-              min="11"
-              max="32"
-              value={settings.fontSize}
-              onChange={(event) =>
-                void configure({
-                  fontSize: Math.max(
-                    11,
-                    Math.min(32, Number(event.target.value)),
-                  ),
-                })
-              }
-            />
-          </label>
-          <button disabled={!current} onClick={() => void command("export")}>
-            Export HTML
-          </button>
-          <button disabled={!current} onClick={() => void command("print")}>
-            Print
-          </button>
-          <button disabled={!current} onClick={() => void command("pdf")}>
-            Save as PDF
-          </button>
-          <button
-            disabled={!current}
-            onClick={() => void save(current, true, true)}
-          >
-            Save a UTF-8 copy
-          </button>
-          <button
-            onClick={async () => {
-              const result = await window.deft.confirm(
-                "Clear recovery snapshots?",
-                "Open documents remain in memory and new recovery snapshots will be created as you edit.",
-                ["Cancel", "Clear"],
-              );
-              if (result === 1) await window.deft.recover([]);
-            }}
-          >
-            Clear recovery
-          </button>
-          <p>
-            Draft recovery is on. Remote images are blocked. Local images stay
-            inside the document folder.
-          </p>
-        </section>
-      )}
+              />
+            </label>
+          ),
+        )}
+        <p>
+          Unfinished tabs reopen without choosing a file name. Closing a tab
+          discards its unsaved changes. Named-file autosave is separate.
+        </p>
+        <button disabled={!current} onClick={() => void command("export")}>
+          Export HTML
+        </button>
+        <button disabled={!current} onClick={() => void command("print")}>
+          Print
+        </button>
+        <button disabled={!current} onClick={() => void command("pdf")}>
+          Save as PDF
+        </button>
+        <button
+          disabled={!current}
+          onClick={() => void save(current, true, true)}
+        >
+          Save a UTF-8 copy
+        </button>
+        <p>
+          Recovery is written after a short pause; a crash may lose the last
+          half-second of typing. Remote images are blocked. Local images stay
+          inside the document folder.
+        </p>
+      </section>
     </main>
+  );
+}
+function ContextualFormat({
+  editor,
+  command,
+  hidden,
+}: {
+  editor: import("./editor").DocumentEditor;
+  command: (name: string) => unknown;
+  hidden: boolean;
+}) {
+  const [position, setPosition] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
+  useEffect(() => {
+    const updatePosition = () => {
+      if (
+        hidden ||
+        editor.doc.kind !== "markdown" ||
+        editor.doc.mode !== "live" ||
+        editor.doc.readOnly ||
+        editor.state.selection.main.empty ||
+        !editor.view
+      ) {
+        setPosition(null);
+        return;
+      }
+      const caret = editor.view.coordsAtPos(editor.state.selection.main.from);
+      if (!caret) {
+        setPosition(null);
+        return;
+      }
+      setPosition({
+        top: Math.max(44, caret.top - 40),
+        left: Math.max(8, Math.min(innerWidth - 300, caret.left)),
+      });
+    };
+    updatePosition();
+    window.addEventListener("scroll", updatePosition, true);
+    return () => window.removeEventListener("scroll", updatePosition, true);
+  }, [editor, editor.state, hidden]);
+  if (!position) return null;
+  return (
+    <div className="contextual-format" style={position}>
+      <FormattingToolbar editor={editor} command={command} />
+    </div>
   );
 }
 createRoot(document.getElementById("root")!).render(<App />);

@@ -1,3 +1,4 @@
+import { menuCommand, openFormat } from "./menu-helpers.mjs";
 import { _electron as electron } from "playwright";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -63,13 +64,13 @@ try {
   await page.emulateMedia({ colorScheme: null, reducedMotion: null });
   await fs.mkdir("test-results", { recursive: true });
   console.log(`Native startup to editor: ${Date.now() - started} ms`);
-  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await menuCommand(app, page, "File", "Save");
   await page.waitForTimeout(350);
   assert.deepEqual(await fs.readFile(fixture), original);
   for (const label of ["Source", "Read", "Live"]) {
-    await page.getByRole("button", { name: label, exact: true }).click();
+    await menuCommand(app, page, "View", label);
   }
-  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await menuCommand(app, page, "File", "Save");
   await page.waitForTimeout(350);
   assert.deepEqual(await fs.readFile(fixture), original);
   const editor = page.locator(".cm-content");
@@ -80,7 +81,7 @@ try {
     "Editor has edit:",
     (await editor.textContent()).includes("Targeted edit"),
   );
-  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await menuCommand(app, page, "File", "Save");
   await page.waitForTimeout(400);
   assert.equal(
     (await fs.readFile(fixture)).toString(),
@@ -88,10 +89,10 @@ try {
   );
   await editor.click();
   await page.keyboard.press(`${mod}+z`);
-  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await menuCommand(app, page, "File", "Save");
   await page.waitForTimeout(400);
   assert.deepEqual(await fs.readFile(fixture), original);
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await menuCommand(app, page, "View", "Preferences…");
   for (const appearance of ["light", "dark"])
     for (const material of ["glass", "solid"]) {
       await page
@@ -102,7 +103,7 @@ try {
       await page.screenshot({
         path: `test-results/${appearance}-${material}.png`,
       });
-      await page.getByRole("button", { name: "Settings", exact: true }).click();
+      await menuCommand(app, page, "View", "Preferences…");
     }
   await page.getByRole("button", { name: "Close settings" }).click();
   assert.deepEqual(errors, []);
@@ -140,14 +141,14 @@ try {
     .first()
     .waitFor();
   assert.equal(await page.locator(".tab").count(), 2);
-  await page.getByRole("button", { name: "Editable", exact: true }).click();
+  await menuCommand(app, page, "View", "Read-only");
   await page.locator(".cm-content").click();
   await page.keyboard.press(`${mod}+End`);
   await page.keyboard.type("BLOCKED");
   assert.ok(
     !(await page.locator(".cm-content").textContent()).includes("BLOCKED"),
   );
-  await page.getByRole("button", { name: "Read-only", exact: true }).click();
+  await menuCommand(app, page, "View", "Read-only");
   await page.keyboard.press(`${mod}+f`);
   await page.getByPlaceholder("Find").fill("Alpha");
   await page.getByPlaceholder("Replace").fill("Gamma");
@@ -186,7 +187,7 @@ try {
     .getByRole("button", { name: "hostile.md", exact: false })
     .first()
     .waitFor();
-  await page.getByRole("button", { name: "Read", exact: true }).click();
+  await menuCommand(app, page, "View", "Read");
   await page.locator("article math").waitFor();
   assert.equal(await page.evaluate(() => window.compromised), undefined);
   assert.equal(await page.locator("article script").count(), 0);
@@ -206,7 +207,7 @@ try {
     },
     { pdf: pdfPath, html: htmlPath },
   );
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await menuCommand(app, page, "View", "Preferences…");
   await page.getByRole("button", { name: "Export HTML", exact: true }).click();
   for (let attempt = 0; attempt < 50; attempt++) {
     try {
@@ -284,7 +285,7 @@ try {
       "External refresh local edit",
     ),
   );
-  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await menuCommand(app, page, "File", "Save");
   await page.waitForTimeout(200);
   assert.equal(await fs.readFile(unknown, "utf8"), "Another external version");
   console.log(

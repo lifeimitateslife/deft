@@ -1,3 +1,4 @@
+import { menuCommand, openFormat } from "./menu-helpers.mjs";
 import { _electron as electron } from "playwright";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -94,12 +95,7 @@ try {
   const env = { ...process.env };
   delete env.ELECTRON_RUN_AS_NODE;
   app = await electron.launch({
-    executablePath: path.join(
-      process.env.LOCALAPPDATA,
-      "Programs",
-      "DEFT",
-      "DEFT.exe",
-    ),
+    executablePath: path.join(process.env.ProgramFiles, "DEFT", "DEFT.exe"),
     env,
     args: [],
   });
@@ -123,12 +119,11 @@ try {
         .getByRole("button", { name: path.basename(file), exact: false })
         .first()
         .click();
-      if (file.endsWith(".md"))
-        await page.getByRole("button", { name: "Source", exact: true }).click();
+      if (file.endsWith(".md")) await menuCommand(app, page, "View", "Source");
       await page.locator(".cm-content").click();
       await page.keyboard.press("Control+End");
       await page.keyboard.type("Saved through shell test");
-      await page.getByRole("button", { name: "Save", exact: true }).click();
+      await menuCommand(app, page, "File", "Save");
       await page
         .locator("footer > span")
         .first()
@@ -153,7 +148,7 @@ try {
       await page.keyboard.press("Control+w");
       await page.waitForFunction(
         (count) => document.querySelectorAll(".tab").length === count,
-        7 - n,
+        Math.max(1, 7 - n),
       );
     }
     await page.evaluate(() => window.deft.settings({ recent: [] }));

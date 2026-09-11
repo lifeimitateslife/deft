@@ -12,15 +12,30 @@ export interface Document {
   readOnly: boolean;
   dirty?: boolean;
   mode?: Mode;
+  active?: boolean;
+  selection?: { anchor: number; head: number };
+  scroll?: { top: number; left: number };
+}
+export interface CustomTheme {
+  chrome: string;
+  paper: string;
+  text: string;
+  accent: string;
 }
 export interface Settings {
-  appearance: "system" | "light" | "dark";
+  appearance: "system" | "light" | "dark" | "custom";
   material: "glass" | "solid";
   wrap: boolean;
   lines: boolean;
   fontSize: number;
   reducedMotion: boolean;
   autosave: boolean;
+  restoreSession?: boolean;
+  statusBar?: boolean;
+  custom?: CustomTheme;
+  glassOpacity?: number;
+  fontFamily?: string;
+  codeFontFamily?: string;
   recent: string[];
 }
 declare global {

@@ -4,6 +4,25 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const { DocumentStore } = require("../desktop/storage.cjs");
 require("node:fs").mkdirSync(".scratch", { recursive: true });
+test("session preserves active tab and cursor, and queued stale snapshots cannot resurrect discarded writing", async () => {
+  const dir = await fs.mkdtemp(path.resolve(".scratch/session-"));
+  const store = new DocumentStore(dir);
+  const a = {
+    ...store.create(),
+    text: "keep",
+    active: true,
+    selection: { anchor: 2, head: 3 },
+    scroll: { top: 42, left: 0 },
+  };
+  const b = { ...store.create(), text: "discard" };
+  await store.recover([a, b]);
+  await Promise.all([store.discard(b.id), store.recover([a, b])]);
+  const restored = await new DocumentStore(dir).restore();
+  assert.equal(restored.length, 1);
+  assert.equal(restored[0].active, true);
+  assert.deepEqual(restored[0].selection, { anchor: 2, head: 3 });
+  assert.equal(restored[0].scroll.top, 42);
+});
 test("proposed reload does not accept an external fingerprint until acknowledged", async () => {
   const dir = await fs.mkdtemp(path.resolve(".scratch/reload-"));
   try {
@@ -214,4 +233,20 @@ test("new drafts and recovery survive a new store without flattening line ending
   } finally {
     await fs.rm(dir, { recursive: true, force: true });
   }
+});
+
+test("dirty named recovery preserves its original conflict baseline across a new session", async () => {
+  const dir = await fs.mkdtemp(path.resolve(".scratch/closed-conflict-"));
+  const file = path.join(dir, "note.txt");
+  await fs.writeFile(file, "original\r\n");
+  const store = new DocumentStore(path.join(dir, "recovery"));
+  const doc = await store.open(file);
+  await store.recover([{ ...doc, text: "unfinished\r\n", dirty: true }]);
+  await fs.writeFile(file, "external");
+  const next = new DocumentStore(path.join(dir, "recovery"));
+  const [restored] = await next.restore();
+  assert.equal(restored.text, "unfinished\r\n");
+  assert.equal(restored.dirty, true);
+  await assert.rejects(next.save(restored.id, restored.text), /CONFLICT/);
+  assert.equal(await fs.readFile(file, "utf8"), "external");
 });

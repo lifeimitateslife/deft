@@ -5,6 +5,7 @@
 !macroend
 
 !macro customInstall
+  WriteRegStr SHCTX "${UNINSTALL_REGISTRY_KEY}" "InstallLocation" "$INSTDIR"
   WriteRegStr SHCTX "Software\Classes\DEFT.Document" "" "DEFT document"
   WriteRegStr SHCTX "Software\Classes\DEFT.Document\DefaultIcon" "" '"$INSTDIR\resources\document.ico"'
   WriteRegStr SHCTX "Software\Classes\DEFT.Document\shell\open\command" "" '"$INSTDIR\DEFT.exe" "%1"'

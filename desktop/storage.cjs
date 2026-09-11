@@ -46,6 +46,7 @@ class DocumentStore {
     this.queue = Promise.resolve();
     this.recoveryDir = recoveryDir;
     this.reloads = new Map();
+    this.discarded = new Set();
   }
   create(kind = "text") {
     const doc = {
@@ -66,23 +67,28 @@ class DocumentStore {
     if (!this.recoveryDir) return;
     if (!Array.isArray(drafts) || drafts.length > 100)
       throw new Error("Recovery supports up to 100 open documents.");
-    const snapshots = drafts.map((draft) => {
-      const native = this.docs.get(draft.id);
-      if (!native || typeof draft.text !== "string")
-        throw new Error("Invalid recovery document.");
-      return {
-        ...native,
-        text: draft.text,
-        dirty: !!draft.dirty,
-        kind: ["text", "markdown"].includes(draft.kind)
-          ? draft.kind
-          : native.kind,
-        mode: ["live", "source", "read"].includes(draft.mode)
-          ? draft.mode
-          : "source",
-        readOnly: !!draft.readOnly,
-      };
-    });
+    const snapshots = drafts
+      .filter((draft) => !this.discarded.has(draft.id))
+      .map((draft) => {
+        const native = this.docs.get(draft.id);
+        if (!native || typeof draft.text !== "string")
+          throw new Error("Invalid recovery document.");
+        return {
+          ...native,
+          text: draft.text,
+          dirty: !!draft.dirty,
+          kind: ["text", "markdown"].includes(draft.kind)
+            ? draft.kind
+            : native.kind,
+          mode: ["live", "source", "read"].includes(draft.mode)
+            ? draft.mode
+            : "source",
+          readOnly: !!draft.readOnly,
+          active: !!draft.active,
+          selection: draft.selection,
+          scroll: draft.scroll,
+        };
+      });
     const value = JSON.stringify(snapshots);
     if (Buffer.byteLength(value) > 64 * 1024 * 1024)
       throw new Error(
@@ -92,7 +98,11 @@ class DocumentStore {
       await fs.mkdir(this.recoveryDir, { recursive: true });
       await safeWrite(
         path.join(this.recoveryDir, "session.json"),
-        Buffer.from(value),
+        Buffer.from(
+          JSON.stringify(
+            snapshots.filter((doc) => !this.discarded.has(doc.id)),
+          ),
+        ),
       );
     });
   }
@@ -130,18 +140,31 @@ class DocumentStore {
     return drafts;
   }
   async discard(id) {
-    this.docs.delete(id);
-    if (!this.recoveryDir) return;
-    let snapshots = [];
-    try {
-      snapshots = JSON.parse(
-        await fs.readFile(path.join(this.recoveryDir, "session.json"), "utf8"),
-      );
-    } catch (e) {
-      if (e.code !== "ENOENT") throw e;
-    }
-    await this.recover(snapshots.filter((doc) => doc.id !== id));
+    return this.serialize(async () => {
+      if (this.recoveryDir) {
+        let snapshots = [];
+        try {
+          snapshots = JSON.parse(
+            await fs.readFile(
+              path.join(this.recoveryDir, "session.json"),
+              "utf8",
+            ),
+          );
+        } catch (e) {
+          if (e.code !== "ENOENT") throw e;
+        }
+        await fs.mkdir(this.recoveryDir, { recursive: true });
+        await safeWrite(
+          path.join(this.recoveryDir, "session.json"),
+          Buffer.from(JSON.stringify(snapshots.filter((doc) => doc.id !== id))),
+        );
+      }
+      this.discarded.add(id);
+      this.docs.delete(id);
+      this.reloads.delete(id);
+    });
   }
+
   async check(id) {
     const doc = this.docs.get(id);
     if (!doc?.path) return { changed: false };

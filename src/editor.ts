@@ -35,6 +35,14 @@ import {
   sourceOf,
 } from "./source";
 import { liveMarkdown, liveBlocks } from "./live";
+import { selectedTable, tableTransaction, type TableAction } from "./table";
+import {
+  formatTransaction,
+  formatActive,
+  selectedLink,
+  type Format,
+} from "./formatting";
+import { fontStack } from "./preferences";
 import type { Document, Settings } from "./types";
 export class DocumentEditor {
   state: EditorState;
@@ -42,15 +50,38 @@ export class DocumentEditor {
   mode = new Compartment();
   appearance = new Compartment();
   editable = new Compartment();
+  shutdown = new Compartment();
   scroll = { top: 0, left: 0 };
   constructor(
     public doc: Document,
     settings: Settings,
     private changed: (editor: DocumentEditor) => void,
   ) {
+    if (
+      doc.scroll &&
+      Number.isFinite(doc.scroll.top) &&
+      Number.isFinite(doc.scroll.left)
+    )
+      this.scroll = doc.scroll;
     this.state = EditorState.create({
       doc: normalize(doc.text),
+      selection:
+        doc.selection &&
+        Number.isInteger(doc.selection.anchor) &&
+        Number.isInteger(doc.selection.head)
+          ? {
+              anchor: Math.max(
+                0,
+                Math.min(normalize(doc.text).length, doc.selection.anchor),
+              ),
+              head: Math.max(
+                0,
+                Math.min(normalize(doc.text).length, doc.selection.head),
+              ),
+            }
+          : undefined,
       extensions: [
+        this.shutdown.of([]),
         exactSource.init(() => doc.text),
         sourceHistory,
         history(),
@@ -86,6 +117,22 @@ export class DocumentEditor {
       ],
     });
   }
+  snapshot(active: string) {
+    return {
+      ...this.doc,
+      active: this.doc.id === active,
+      selection: {
+        anchor: this.state.selection.main.anchor,
+        head: this.state.selection.main.head,
+      },
+      scroll: this.view
+        ? {
+            top: this.view.scrollDOM.scrollTop,
+            left: this.view.scrollDOM.scrollLeft,
+          }
+        : this.scroll,
+    };
+  }
   language() {
     return this.doc.kind === "markdown"
       ? [
@@ -100,7 +147,17 @@ export class DocumentEditor {
     return [
       settings.wrap ? EditorView.lineWrapping : [],
       settings.lines ? lineNumbers() : [],
-      EditorView.theme({ "&": { fontSize: `${settings.fontSize}px` } }),
+      EditorView.theme({
+        "&": { fontSize: `${settings.fontSize}px` },
+        ".cm-scroller": {
+          fontFamily: fontStack(
+            this.doc.kind === "markdown" && this.doc.mode === "source"
+              ? settings.codeFontFamily
+              : settings.fontFamily,
+            this.doc.kind === "markdown" && this.doc.mode === "source",
+          ),
+        },
+      }),
     ];
   }
   mount(parent: HTMLElement) {
@@ -144,6 +201,15 @@ export class DocumentEditor {
       ],
     });
   }
+  lockForQuit(locked: boolean) {
+    this.dispatch({
+      effects: this.shutdown.reconfigure(
+        locked
+          ? [EditorState.readOnly.of(true), EditorView.editable.of(false)]
+          : [],
+      ),
+    });
+  }
   reload(doc: Document) {
     this.doc = doc;
     this.dispatch({
@@ -179,47 +245,35 @@ export class DocumentEditor {
     });
     this.view?.focus();
   }
-  get selectedTable() {
-    let node = syntaxTree(this.state).resolveInner(
-      this.state.selection.main.head,
-      -1,
-    );
-    while (node.parent && node.name !== "Table") node = node.parent;
-    return node.name === "Table" ? node : undefined;
+  format(action: Format, href?: string) {
+    if (
+      this.doc.kind !== "markdown" ||
+      this.doc.readOnly ||
+      this.doc.mode === "read"
+    )
+      return;
+    const spec = formatTransaction(this.state, action, href);
+    if (spec) this.dispatch(spec);
+    this.view?.focus();
   }
-  table(action: "row" | "column") {
-    if (this.doc.readOnly || this.doc.mode === "read") return;
-    const node = this.selectedTable;
-    if (!node) return;
-    const first = this.state.doc.lineAt(node.from);
-    let cells = 0;
-    node
-      .getChild("TableHeader")
-      ?.getChildren("TableCell")
-      .forEach(() => cells++);
-    if (action === "row") {
-      const line = this.state.doc.lineAt(this.state.selection.main.head);
-      this.dispatch({
-        changes: {
-          from: line.to,
-          insert: "\n|" + Array(cells).fill(" Text |").join(""),
-        },
-      });
-    } else {
-      const changes = [];
-      for (
-        let number = first.number;
-        number <= this.state.doc.lineAt(node.to).number;
-        number++
-      ) {
-        const line = this.state.doc.line(number);
-        changes.push({
-          from: line.to,
-          insert: number === first.number + 1 ? " --- |" : " Text |",
-        });
-      }
-      this.dispatch({ changes });
-    }
+  formatActive(action: Format) {
+    return formatActive(this.state, action);
+  }
+  get link() {
+    return selectedLink(this.state);
+  }
+  get selectedTable() {
+    return selectedTable(this.state);
+  }
+  table(action: TableAction) {
+    if (
+      this.doc.kind !== "markdown" ||
+      this.doc.readOnly ||
+      this.doc.mode === "read"
+    )
+      return;
+    const spec = tableTransaction(this.state, action);
+    if (spec) this.dispatch(spec);
     this.view?.focus();
   }
 }

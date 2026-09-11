@@ -20,6 +20,7 @@ const commands = [
   "pdf",
   "confirm",
   "material",
+  "nativeCommand",
 ];
 const bridge = Object.fromEntries(
   commands.map((name) => [

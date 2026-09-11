@@ -1,3 +1,4 @@
+import { menuCommand, openFormat } from "./menu-helpers.mjs";
 import { _electron as electron } from "playwright";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -20,7 +21,7 @@ const rounds = Number(process.env.DEFT_HANDOFF_ROUNDS || 12);
 try {
   const page = await app.firstWindow();
   page.setDefaultTimeout(5000);
-  await page.getByRole("button", { name: "New text", exact: true }).waitFor();
+  await page.locator(".cm-content").waitFor();
   await app.evaluate(({ app, dialog, BrowserWindow }) => {
     let handling = false;
     globalThis.handoff = {
@@ -153,21 +154,27 @@ try {
     1,
     "Settings replacements must not overlap",
   );
-  assert.equal(await page.locator(".tab").count(), 12);
+  assert.equal(await page.locator(".tab").count(), 13);
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Close Untitled", exact: true })
+      .count(),
+    1,
+    "Normal launch retains one blank writing surface beside delivered files",
+  );
   for (const file of files.slice(0, 2)) {
     await page
       .getByRole("button", { name: path.basename(file), exact: false })
       .first()
       .click();
-    if (file.endsWith(".md"))
-      await page.getByRole("button", { name: "Source", exact: true }).click();
+    if (file.endsWith(".md")) await menuCommand(app, page, "View", "Source");
     await page.locator(".cm-content").click();
     await page.keyboard.press(
       `${process.platform === "darwin" ? "Meta" : "Control"}+End`,
     );
     await page.keyboard.type("Saved edit");
     await page.locator(".tab.active .dirty").waitFor();
-    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await menuCommand(app, page, "File", "Save");
     await page
       .locator("footer > span")
       .first()

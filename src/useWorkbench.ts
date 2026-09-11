@@ -2,16 +2,9 @@ import React, { useEffect, useRef, useState, useMemo } from "react";
 import { DocumentEditor } from "./editor";
 import { renderMarkdown, exportDocument } from "./markdown";
 import type { Document, Settings, Kind, Mode } from "./types";
-const defaults: Settings = {
-  appearance: "system",
-  material: "glass",
-  wrap: true,
-  lines: false,
-  fontSize: 16,
-  reducedMotion: false,
-  autosave: false,
-  recent: [],
-};
+import type { Format } from "./formatting";
+import { preferences } from "./preferences";
+const defaults = preferences();
 const kindOf = (doc: Document): Kind =>
   doc.kind || (/\.(md|markdown|mdown)$/i.test(doc.name) ? "markdown" : "text");
 export function useWorkbench() {
@@ -19,6 +12,7 @@ export function useWorkbench() {
     [active, setActive] = useState(""),
     [settings, setSettings] = useState(defaults),
     [panel, setPanel] = useState(false),
+    [linkEditor, setLinkEditor] = useState<DocumentEditor | null>(null),
     [outline, setOutline] = useState(false),
     [notice, setNotice] = useState(""),
     [html, setHtml] = useState(""),
@@ -33,7 +27,9 @@ export function useWorkbench() {
     }>({ tabs: [], active: "", settings: defaults }),
     saving = useRef(new Set<string>()),
     initialized = useRef(false),
-    recoveryReady = useRef(false);
+    recoveryReady = useRef(false),
+    closing = useRef(false),
+    transitions = useRef(Promise.resolve());
   const current = tabs.find((tab) => tab.doc.id === active);
   const update = () => refresh((n) => n + 1);
   latest.current = { tabs, active, settings, current };
@@ -47,7 +43,11 @@ export function useWorkbench() {
   async function recovery(list = latest.current.tabs) {
     if (recoveryReady.current)
       await window.deft.recover(
-        list.map((tab: DocumentEditor) => ({ ...tab.doc, text: tab.doc.text })),
+        latest.current.settings.restoreSession === false
+          ? []
+          : list.map((tab: DocumentEditor) =>
+              tab.snapshot(latest.current.active),
+            ),
       );
   }
   function add(docs: Document[]) {
@@ -75,11 +75,25 @@ export function useWorkbench() {
     setTabs(next);
     return next;
   }
-  async function newDoc(kind: Kind) {
+  async function createDoc(kind: Kind) {
     add([await window.deft.create(kind)]);
   }
+  function newDoc(kind: Kind) {
+    if (closing.current) return;
+    return transition(() => createDoc(kind));
+  }
   async function open(paths?: string[]) {
-    add(await window.deft.open(paths));
+    if (closing.current) return;
+    return transition(async () => {
+      add(await window.deft.open(paths));
+      await refreshRecent();
+    });
+  }
+  async function refreshRecent() {
+    const { recent } = await window.deft.settings();
+    const next = { ...latest.current.settings, recent };
+    latest.current.settings = next;
+    setSettings(next);
   }
   async function save(tab = current, copy = false, utf8 = false) {
     if (!tab || saving.current.has(tab.doc.id)) return false;
@@ -95,7 +109,7 @@ export function useWorkbench() {
         text: tab.doc.text,
         dirty: tab.doc.text !== text,
       };
-      setNotice("Saved");
+      setNotice("");
       update();
       await recovery();
       return true;
@@ -107,64 +121,53 @@ export function useWorkbench() {
       setBusy(saving.current.size > 0);
     }
   }
-  async function close(tab = current) {
-    if (!tab) return true;
-    if (saving.current.has(tab.doc.id)) {
-      setNotice("Wait for the save to finish.");
-      return false;
-    }
-    if (tab.doc.dirty) {
-      const answer = await window.deft.confirm("Save changes?", tab.doc.name, [
-        "Cancel",
-        "Discard",
-        "Save",
-      ]);
-      if (answer === 0) return false;
-      if (answer === 2 && !(await save(tab))) return false;
-      if (answer === 2 && tab.doc.dirty) {
-        setNotice("New edits arrived during the save. The tab remains open.");
-        return false;
-      }
-    }
-    const next = latest.current.tabs.filter(
-      (item: DocumentEditor) => item !== tab,
-    );
-    await recovery(next);
-    await window.deft.close(tab.doc.id);
-    tab.unmount();
-    latest.current.tabs = next;
-    setTabs(next);
-    if (latest.current.active === tab.doc.id)
-      setActive(next.at(-1)?.doc.id || "");
-    return true;
+  function transition(work: () => Promise<void>) {
+    const result = transitions.current.then(work);
+    transitions.current = result.catch(report);
+    return result;
   }
-  async function quit() {
-    for (const tab of [...latest.current.tabs]) {
-      if (tab.doc.dirty) {
-        const answer = await window.deft.confirm(
-          "Keep this draft for next time?",
-          tab.doc.name,
-          ["Cancel", "Keep draft", "Discard", "Save"],
-        );
-        if (answer === 0) return;
-        if (answer === 2) {
-          if (!(await closeDiscard(tab))) return;
-        }
-        if (answer === 3 && !(await save(tab))) return;
+  function close(tab = latest.current.current) {
+    return transition(async () => {
+      if (!tab || !latest.current.tabs.includes(tab)) return;
+      if (saving.current.has(tab.doc.id)) {
+        setNotice("Wait for the save to finish.");
+        return;
       }
-    }
-    await recovery();
-    await window.deft.close(null, true);
+      await window.deft.close(tab.doc.id);
+      const next = latest.current.tabs.filter((item) => item !== tab);
+      tab.unmount();
+      latest.current.tabs = next;
+      setTabs(next);
+      if (latest.current.active === tab.doc.id) {
+        latest.current.active = next.at(-1)?.doc.id || "";
+        setActive(latest.current.active);
+      }
+      if (!next.length) await createDoc("text");
+      await recovery();
+    });
   }
-  async function closeDiscard(tab: DocumentEditor) {
-    const next = latest.current.tabs.filter(
-      (item: DocumentEditor) => item !== tab,
-    );
-    await recovery(next);
-    await window.deft.close(tab.doc.id);
-    latest.current.tabs = next;
-    setTabs(next);
-    return true;
+  function quit() {
+    if (closing.current) return;
+    closing.current = true;
+    return transition(async () => {
+      const locked = [...latest.current.tabs];
+      document.body.inert = true;
+      for (const tab of locked) tab.lockForQuit(true);
+      try {
+        if (!recoveryReady.current)
+          throw new Error(
+            "Recovery is unavailable. Keep this window open and save your work before quitting.",
+          );
+        // Snapshot after every previously requested close, with the latest editor text.
+        await recovery();
+        await window.deft.close(null, true);
+      } catch (error) {
+        document.body.inert = false;
+        for (const tab of locked) tab.lockForQuit(false);
+        closing.current = false;
+        throw error;
+      }
+    });
   }
   async function configure(value: Partial<Settings>) {
     const next = { ...latest.current.settings, ...value };
@@ -174,17 +177,86 @@ export function useWorkbench() {
     await window.deft.settings(value);
   }
   async function command(action: string) {
+    if (closing.current) return;
     const tab = latest.current.current;
     try {
+      if (action.startsWith("recent:")) return open([action.slice(7)]);
+      if (
+        action.startsWith("edit-") ||
+        action.startsWith("zoom-") ||
+        ["about", "default-apps"].includes(action)
+      )
+        return window.deft.nativeCommand(action);
+      if (action.startsWith("mode-") && tab?.doc.kind === "markdown") {
+        const value = action.slice(5) as Mode;
+        if (tab.doc.text.length >= 500_000 && value !== "source") {
+          setNotice(
+            "Rich views are limited to documents under 500,000 characters.",
+          );
+          return;
+        }
+        tab.doc.mode = value;
+        tab.configure(latest.current.settings);
+        update();
+        return;
+      }
+      if (action === "status-bar")
+        return configure({
+          statusBar: latest.current.settings.statusBar === false,
+        });
+      if (action === "outline") {
+        setOutline((value) => !value);
+        return;
+      }
+      if (action === "read-only" && tab) {
+        tab.doc.readOnly = !tab.doc.readOnly;
+        tab.configure(latest.current.settings);
+        update();
+        return;
+      }
+      if (action.startsWith("table-") && tab?.doc.kind === "markdown") {
+        if (action === "table-insert")
+          tab.insert("\n| Column | Column |\n| --- | --- |\n| Text | Text |\n");
+        else tab.table(action.slice(6) as import("./table").TableAction);
+        return;
+      }
+      if (
+        action.startsWith("format-") &&
+        tab?.doc.kind === "markdown" &&
+        !tab.doc.readOnly &&
+        tab.doc.mode !== "read"
+      ) {
+        const format = action.slice(7) as Format;
+        if (format === "link") setLinkEditor(tab);
+        else tab.format(format);
+        return;
+      }
       switch (action) {
         case "new-text":
           return newDoc("text");
+        case "next-tab":
+        case "previous-tab": {
+          const list = latest.current.tabs;
+          const index = list.findIndex(
+            (item) => item.doc.id === latest.current.active,
+          );
+          const next =
+            list[
+              (index + (action === "next-tab" ? 1 : list.length - 1)) %
+                list.length
+            ];
+          if (next) setActive(next.doc.id);
+          return;
+        }
         case "new-markdown":
           return newDoc("markdown");
         case "open":
           return open();
         case "pending":
-          return add(await window.deft.pending());
+          return transition(async () => {
+            add(await window.deft.pending());
+            await refreshRecent();
+          });
         case "save":
           return save(tab);
         case "save-as":
@@ -214,11 +286,17 @@ export function useWorkbench() {
     window.deft
       .init()
       .then(async (data: any) => {
-        latest.current.settings = { ...defaults, ...data.settings };
+        latest.current.settings = preferences(data.settings);
         setSettings(latest.current.settings);
         add(data.docs);
+        const selected = data.docs.find((doc: Document) => doc.active);
+        if (selected) setActive(selected.id);
         recoveryReady.current = true;
-        if (data.pending) add(await window.deft.pending());
+        if (data.pending) {
+          add(await window.deft.pending());
+          await refreshRecent();
+        }
+        if (!latest.current.tabs.length) await newDoc("text");
       })
       .catch(report);
     return window.deft.onAction((name: string) => void command(name));
@@ -233,6 +311,11 @@ export function useWorkbench() {
       if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
       const key = event.key.toLowerCase();
       const mapped: Record<string, string> = {
+        b: "format-bold",
+        i: "format-italic",
+        k: "format-link",
+        t: "new-text",
+        tab: event.shiftKey ? "previous-tab" : "next-tab",
         f: "find",
         l: "line",
         s: event.shiftKey ? "save-as" : "save",
@@ -272,7 +355,7 @@ export function useWorkbench() {
     if (!initialized.current) return;
     const timer = setTimeout(() => recovery().catch(report), 500);
     return () => clearTimeout(timer);
-  }, [revision, tabs]);
+  }, [revision, tabs, active]);
   useEffect(() => {
     let polling = false;
     async function reload(tab: DocumentEditor) {
@@ -409,6 +492,8 @@ export function useWorkbench() {
     settings,
     panel,
     setPanel,
+    linkEditor,
+    setLinkEditor,
     outline,
     setOutline,
     notice,
