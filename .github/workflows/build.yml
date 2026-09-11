@@ -35,6 +35,7 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npm run test:ui
+      - run: npm run test:handoff
       - run: npx electron-builder ${{ matrix.flags }} --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"

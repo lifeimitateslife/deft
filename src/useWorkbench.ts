@@ -182,8 +182,9 @@ export function useWorkbench() {
         case "new-markdown":
           return newDoc("markdown");
         case "open":
-        case "pending":
           return open();
+        case "pending":
+          return add(await window.deft.pending());
         case "save":
           return save(tab);
         case "save-as":
@@ -217,7 +218,7 @@ export function useWorkbench() {
         setSettings(latest.current.settings);
         add(data.docs);
         recoveryReady.current = true;
-        if (data.pending) await open();
+        if (data.pending) add(await window.deft.pending());
       })
       .catch(report);
     return window.deft.onAction((name: string) => void command(name));

@@ -34,9 +34,13 @@ if (!locked) app.quit();
 app.on("second-instance", (_event, args, directory) => {
   pending.push(...fileArguments(args, directory));
   if (win) {
-    win.restore();
-    win.focus();
     if (ready) win.webContents.send("action", "pending");
+    // Windows activation can pump more handoffs. Acknowledge this one first.
+    setImmediate(() => {
+      if (!win || win.isDestroyed()) return;
+      if (win.isMinimized()) win.restore();
+      win.focus();
+    });
   }
 });
 app.on("open-file", (event, file) => {
@@ -158,15 +162,11 @@ function register(name, handler) {
 }
 async function openFiles(files) {
   if (!files) {
-    if (pending.length) {
-      files = pending.splice(0);
-    } else {
-      const result = await dialog.showOpenDialog(win, {
-        properties: ["openFile", "multiSelections"],
-      });
-      if (result.canceled) return [];
-      files = result.filePaths;
-    }
+    const result = await dialog.showOpenDialog(win, {
+      properties: ["openFile", "multiSelections"],
+    });
+    if (result.canceled) return [];
+    files = result.filePaths;
   }
   const opened = [];
   for (const file of files) {
@@ -204,9 +204,9 @@ async function openFiles(files) {
   return opened;
 }
 async function saveSettings() {
-  await safeWrite(
-    path.join(app.getPath("userData"), "settings.json"),
-    Buffer.from(JSON.stringify(settings)),
+  const snapshot = Buffer.from(JSON.stringify(settings));
+  await store.serialize(() =>
+    safeWrite(path.join(app.getPath("userData"), "settings.json"), snapshot),
   );
 }
 function getDoc(id) {
@@ -337,6 +337,7 @@ if (locked)
       });
       register("create", (kind) => store.create(kind));
       register("open", openFiles);
+      register("pending", () => openFiles(pending.splice(0)));
       register("save", async (id, text, copy = false, utf8 = false) => {
         const doc = getDoc(id);
         let destination;

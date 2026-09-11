@@ -486,7 +486,20 @@ footer button {
   overflow-wrap: anywhere;
 }
 button {
-  transition: background-color 100ms ease-out;
+  transition:
+    background-color 130ms ease-out,
+    color 130ms ease-out,
+    box-shadow 130ms ease-out,
+    transform 100ms ease-out;
+}
+.tab,
+.notice {
+  animation: reveal 130ms ease-out;
+}
+.tab {
+  transition:
+    background-color 130ms ease-out,
+    color 130ms ease-out;
 }
 @keyframes reveal {
   from {

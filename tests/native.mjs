@@ -34,6 +34,33 @@ try {
     .first()
     .waitFor();
   await page.locator(".cm-content").waitFor();
+  assert.equal(
+    await page.locator("main").getAttribute("data-appearance"),
+    "system",
+  );
+  await page.emulateMedia({ colorScheme: "dark" });
+  const dark = await page
+    .locator("main")
+    .evaluate((el) => getComputedStyle(el).backgroundColor);
+  await page.emulateMedia({ colorScheme: "light" });
+  const light = await page
+    .locator("main")
+    .evaluate((el) => getComputedStyle(el).backgroundColor);
+  assert.notEqual(
+    light,
+    dark,
+    "Fresh appearance must follow system light/dark settings",
+  );
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  assert.equal(
+    await page
+      .locator(".tab")
+      .first()
+      .evaluate((el) => getComputedStyle(el).animationName),
+    "none",
+  );
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.emulateMedia({ colorScheme: null, reducedMotion: null });
   await fs.mkdir("test-results", { recursive: true });
   console.log(`Native startup to editor: ${Date.now() - started} ms`);
   await page.getByRole("button", { name: "Save", exact: true }).click();

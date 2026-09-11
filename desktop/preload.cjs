@@ -3,6 +3,7 @@ const commands = [
   "init",
   "create",
   "open",
+  "pending",
   "save",
   "close",
   "recover",

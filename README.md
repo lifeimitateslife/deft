@@ -9,9 +9,9 @@ Open a file, work, save. No account, vault, server, or subscription.
 ## Install
 
 Download from [Releases](https://github.com/lifeimitateslife/deft/releases).
-On Windows x64, use **DEFT.Setup.0.1.0.exe**. On an Apple Silicon Mac, use the arm64 DMG; Intel Macs use the x64 DMG.
+On Windows x64, use **DEFT.Setup.0.1.1.exe**. On an Apple Silicon Mac, use the arm64 DMG; Intel Macs use the x64 DMG.
 
-The [0.1.0 prerelease](https://github.com/lifeimitateslife/deft/releases/tag/v0.1.0) includes checksums, a claim audit, and verification evidence. Try copies of your own files before choosing DEFT as your everyday default.
+The [0.1.1 prerelease](https://github.com/lifeimitateslife/deft/releases/tag/v0.1.1) includes checksums, a claim audit, and verification evidence. Try copies of your own files before choosing DEFT as your everyday default.
 
 Builds are unsigned. Windows may show an unknown-publisher warning. Verify the release checksum before choosing to run the installer. On macOS, drag DEFT to Applications. If macOS blocks this unsigned application, use System Settings > Privacy & Security > Open Anyway for DEFT. Do not disable system security.
 
@@ -71,6 +71,8 @@ npm test
 npm run build
 npm start
 ```
+
+`npm run test:handoff` tests simultaneous and successive file invocations, native settings-write serialization, and save/reopen behavior. On Windows, `DEFT_HANDOFF_ROUNDS=40` runs 123 handoffs per process launch (set the variable using your shell).
 
 `npm run test:ui` exercises Electron with synthetic files and disposable profiles under `.scratch/`. `npm run package` builds a Windows installer or macOS DMG on the corresponding OS. `npm run icons` regenerates platform icons from the original vector design. Lockfiles and original icon sources are included.
 
