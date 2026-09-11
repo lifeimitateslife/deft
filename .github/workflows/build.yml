@@ -59,6 +59,9 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      - name: Enable transparency on disposable Mac test runner
+        if: runner.os == 'macOS'
+        run: defaults write com.apple.universalaccess reduceTransparency -bool false
       - run: node scripts/package-test.cjs
       - name: Verify Mac background compositing
         if: runner.os == 'macOS' && !cancelled()
