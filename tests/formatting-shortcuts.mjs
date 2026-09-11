@@ -29,7 +29,6 @@ for (const extension of ["md", "txt"]) {
     });
     await app.evaluate(({ BrowserWindow }) => {
       globalThis.shortcutTrace = [];
-      globalThis.__DEFT_TRACE = true;
       const wc = BrowserWindow.getAllWindows()[0].webContents;
       const send = wc.send.bind(wc);
       wc.send = (channel, ...args) => {
@@ -46,6 +45,7 @@ for (const extension of ["md", "txt"]) {
     await editor.waitFor();
     await page.evaluate(() => {
       globalThis.shortcutTrace = [];
+      globalThis.__DEFT_TRACE = true;
       document.addEventListener(
         "keydown",
         (event) => {
