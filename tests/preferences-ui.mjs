@@ -129,6 +129,11 @@ try {
   await page
     .getByRole("button", { name: "Reset custom colors", exact: true })
     .click();
+  await page.waitForFunction(
+    () =>
+      document.querySelector('input[aria-label="Accent hex"]').value ===
+      "#3268a8",
+  );
   assert.equal(
     await page.getByLabel("Accent hex", { exact: true }).inputValue(),
     "#3268a8",
