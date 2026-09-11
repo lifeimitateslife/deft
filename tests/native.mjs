@@ -164,6 +164,52 @@ try {
   assert.equal(await page.evaluate(() => window.compromised), undefined);
   assert.equal(await page.locator("article script").count(), 0);
   assert.deepEqual(network, []);
+  const pdfPath = path.join(root, "export.pdf"),
+    htmlPath = path.join(root, "export.html");
+  await app.evaluate(
+    ({ dialog }, paths) => {
+      const original = dialog.showSaveDialog;
+      globalThis.restoreSaveDialog = () => {
+        dialog.showSaveDialog = original;
+      };
+      dialog.showSaveDialog = async (_window, options) => ({
+        canceled: false,
+        filePath: options.defaultPath.endsWith(".pdf") ? paths.pdf : paths.html,
+      });
+    },
+    { pdf: pdfPath, html: htmlPath },
+  );
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Export HTML", exact: true }).click();
+  for (let attempt = 0; attempt < 50; attempt++) {
+    try {
+      await fs.access(htmlPath);
+      break;
+    } catch {
+      await page.waitForTimeout(100);
+    }
+  }
+  assert.ok((await fs.readFile(htmlPath, "utf8")).includes("<math"));
+  assert.ok(
+    !(await fs.readFile(htmlPath, "utf8")).includes(
+      "<script>window.compromised",
+    ),
+  );
+  await page.getByRole("button", { name: "Save as PDF", exact: true }).click();
+  for (let attempt = 0; attempt < 100; attempt++) {
+    try {
+      await fs.access(pdfPath);
+      break;
+    } catch {
+      await page.waitForTimeout(100);
+    }
+  }
+  assert.equal((await fs.readFile(pdfPath)).subarray(0, 5).toString(), "%PDF-");
+  await app.evaluate(() => globalThis.restoreSaveDialog());
+  await page.getByRole("button", { name: "Close settings" }).click();
+  console.log(
+    "PASS real HTML and native PDF export (file-picker selection supplied by test)",
+  );
   const large = path.join(root, "large.txt");
   await fs.writeFile(large, "0123456789 abcdef\n".repeat(130000));
   const largeStart = Date.now();

@@ -336,7 +336,8 @@ export function useWorkbench() {
       !file ||
       !current ||
       current.doc.kind !== "markdown" ||
-      current.doc.readOnly
+      current.doc.readOnly ||
+      current.doc.mode === "read"
     )
       return;
     event.preventDefault();
@@ -360,7 +361,7 @@ export function useWorkbench() {
     }
   }
   async function importImage(file: File) {
-    if (!current) return;
+    if (!current || current.doc.readOnly || current.doc.mode === "read") return;
     try {
       if (!current.doc.path && !(await save(current))) return;
       const answer = await window.deft.confirm(

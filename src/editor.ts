@@ -163,7 +163,7 @@ export class DocumentEditor {
     this.view.focus();
   }
   insert(before: string, after = "") {
-    if (this.doc.readOnly) return;
+    if (this.doc.readOnly || this.doc.mode === "read") return;
     const { from, to } = this.state.selection.main;
     this.dispatch({
       changes: after

@@ -9,7 +9,7 @@ Open a file, work, save. No account, vault, server, or subscription.
 ## Install
 
 Download from [Releases](https://github.com/lifeimitateslife/deft/releases).
-On Windows x64, use **DEFT Setup 0.1.0.exe**. On an Apple Silicon Mac, use the arm64 DMG.
+On Windows x64, use **DEFT Setup 0.1.0.exe**. On an Apple Silicon Mac, use the arm64 DMG; Intel Macs use the x64 DMG.
 
 Builds are unsigned. Windows may show an unknown-publisher warning. Verify the release checksum before choosing to run the installer. On macOS, drag DEFT to Applications. If macOS blocks this unsigned application, use System Settings > Privacy & Security > Open Anyway for DEFT. Do not disable system security.
 
@@ -53,7 +53,7 @@ This is an early prerelease. Rich views are limited to documents under 500,000 c
 
 Live view reveals source for editing tables and math. Some Markdown constructs remain source. Image importing currently accepts PNG. Read-view task boxes are not editable; use Live or Source. No remote image opt-in is provided.
 
-External changes are checked every 2.5 seconds. A writer that changes a file in the short interval between the final check and filesystem replacement cannot be completely excluded. Hard links, extended attributes, and custom Windows ACL preservation are not guaranteed. Deleted or renamed files require reopening or Save As. File associations and unsigned installation require platform-specific verification; see [verification](docs/verification.md).
+External changes are checked every 2.5 seconds. A writer that changes a file in the short interval between the final check and filesystem replacement cannot be completely excluded. Hard links, extended attributes, and custom Windows ACL preservation are not guaranteed. Deleted or renamed files require reopening or Save As. Windows registration and per-user installation were tested; interactive default selection and macOS installation remain unverified; see [verification](docs/verification.md).
 
 Settings and recovery live in `%APPDATA%/deft` on Windows and `~/Library/Application Support/deft` on macOS. Uninstalling does not delete documents. Settings includes a Clear recovery control.
 

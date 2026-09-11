@@ -26,6 +26,7 @@
     },
     "files": [
       "dist/**/*",
+      "assets/icon.png",
       "desktop/**/*",
       "package.json",
       "LICENSE",

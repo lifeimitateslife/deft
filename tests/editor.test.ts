@@ -33,6 +33,9 @@ test("formatting through the editor keeps mixed endings in the actual document",
   editor.dispatch({ selection: { anchor: 0, head: editor.state.doc.length } });
   editor.insert("**", "**");
   assert.equal(editor.doc.text, "**a\r\nb\nc**");
+  editor.doc.mode = "read";
+  editor.insert("unexpected");
+  assert.equal(editor.doc.text, "**a\r\nb\nc**");
 });
 test("grouped undo and redo restore exact mixed endings", () => {
   const text = "a\r\nb\nc\r";

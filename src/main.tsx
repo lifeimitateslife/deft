@@ -122,21 +122,27 @@ function App() {
                   </button>
                   <button
                     title="Bold"
-                    disabled={current.doc.readOnly}
+                    disabled={
+                      current.doc.readOnly || current.doc.mode === "read"
+                    }
                     onClick={() => current.insert("**", "**")}
                   >
                     <b>B</b>
                   </button>
                   <button
                     title="Italic"
-                    disabled={current.doc.readOnly}
+                    disabled={
+                      current.doc.readOnly || current.doc.mode === "read"
+                    }
                     onClick={() => current.insert("*", "*")}
                   >
                     <i>I</i>
                   </button>
                   <button
                     title="Insert link"
-                    disabled={current.doc.readOnly}
+                    disabled={
+                      current.doc.readOnly || current.doc.mode === "read"
+                    }
                     onClick={() =>
                       current.insert("[", "](https://example.com)")
                     }
@@ -145,14 +151,18 @@ function App() {
                   </button>
                   <button
                     title="Insert task"
-                    disabled={current.doc.readOnly}
+                    disabled={
+                      current.doc.readOnly || current.doc.mode === "read"
+                    }
                     onClick={() => current.insert("- [ ] ")}
                   >
                     Task
                   </button>
                   <button
                     title="Insert table"
-                    disabled={current.doc.readOnly}
+                    disabled={
+                      current.doc.readOnly || current.doc.mode === "read"
+                    }
                     onClick={() =>
                       current.insert(
                         "\n| Column | Column |\n| --- | --- |\n| Text | Text |\n",
@@ -163,14 +173,22 @@ function App() {
                   </button>
                   <button
                     title="Add a row to the table at the caret"
-                    disabled={current.doc.readOnly || !current.selectedTable}
+                    disabled={
+                      current.doc.readOnly ||
+                      current.doc.mode === "read" ||
+                      !current.selectedTable
+                    }
                     onClick={() => current.table("row")}
                   >
                     + Row
                   </button>
                   <button
                     title="Add a column to the table at the caret"
-                    disabled={current.doc.readOnly || !current.selectedTable}
+                    disabled={
+                      current.doc.readOnly ||
+                      current.doc.mode === "read" ||
+                      !current.selectedTable
+                    }
                     onClick={() => current.table("column")}
                   >
                     + Column
