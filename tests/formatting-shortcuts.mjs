@@ -23,10 +23,6 @@ for (const extension of ["md", "txt"]) {
   });
   try {
     const page = await app.firstWindow();
-    page.on("console", (message) => {
-      if (message.text().includes("[DEBUG-shortcut]"))
-        console.log(message.text());
-    });
     await app.evaluate(({ BrowserWindow }) => {
       globalThis.shortcutTrace = [];
       const wc = BrowserWindow.getAllWindows()[0].webContents;
@@ -45,7 +41,6 @@ for (const extension of ["md", "txt"]) {
     await editor.waitFor();
     await page.evaluate(() => {
       globalThis.shortcutTrace = [];
-      globalThis.__DEFT_TRACE = true;
       document.addEventListener(
         "keydown",
         (event) => {
@@ -70,6 +65,7 @@ for (const extension of ["md", "txt"]) {
     await page.keyboard.press(`${mod}+a`);
     await page.keyboard.press(`${mod}+b`);
     await page.keyboard.press(`${mod}+s`);
+    await waitForSave(page);
     await assertEventually(async () =>
       assert.equal(await fs.readFile(file, "utf8"), "**Alpha**"),
     );
@@ -79,6 +75,7 @@ for (const extension of ["md", "txt"]) {
     console.log("Selected Ctrl+B: PASS");
     await page.keyboard.press(`${mod}+b`);
     await page.keyboard.press(`${mod}+s`);
+    await waitForSave(page);
     await assertEventually(async () =>
       assert.equal(await fs.readFile(file, "utf8"), "Alpha"),
     );
@@ -90,6 +87,7 @@ for (const extension of ["md", "txt"]) {
     await page.keyboard.press("Enter");
     await page.keyboard.press(`${mod}+b`);
     await page.keyboard.press(`${mod}+s`);
+    await waitForSave(page);
     await assertEventually(async () =>
       assert.equal(
         await fs.readFile(file, "utf8"),
@@ -104,6 +102,7 @@ for (const extension of ["md", "txt"]) {
     await page.keyboard.press(`${mod}+b`);
     await page.keyboard.type(" normal typing");
     await page.keyboard.press(`${mod}+s`);
+    await waitForSave(page);
     await assertEventually(async () =>
       assert.equal(
         await fs.readFile(file, "utf8"),
@@ -142,16 +141,17 @@ for (const extension of ["md", "txt"]) {
     await page.keyboard.press(`${mod}+z`);
     await page.keyboard.press(`${mod}+End`);
     await menuCommand(app, page, "Format", "Insert table");
-    // Live tables may replace their source text in the DOM. Verify the saved
-    // source, after the native menu action has reached the renderer.
-    await assertEventually(async () => {
-      await page.keyboard.press(`${mod}+s`);
-      assert.ok(
-        (await fs.readFile(file, "utf8")).includes("| Column | Column |"),
-      );
-    });
+    // Observe menu delivery in Live view, then read the exact saved source.
     await page.waitForFunction(
-      () => !document.querySelector("footer")?.textContent.includes("Saving"),
+      () =>
+        document.querySelector(".cm-content")?.textContent.includes("Column"),
+      null,
+      { timeout: 3000 },
+    );
+    await page.keyboard.press(`${mod}+s`);
+    await waitForSave(page);
+    assert.ok(
+      (await fs.readFile(file, "utf8")).includes("| Column | Column |"),
     );
     await page.keyboard.press(`${mod}+z`);
     await page.keyboard.press(`${mod}+a`);
@@ -176,6 +176,7 @@ for (const extension of ["md", "txt"]) {
       ),
     );
     await page.keyboard.press(`${mod}+s`);
+    await waitForSave(page);
     await assertEventually(async () =>
       assert.equal(await fs.readFile(file, "utf8"), "**Menu test**"),
     );
@@ -272,6 +273,7 @@ for (const extension of ["md", "txt"]) {
     await page.keyboard.press(`${mod}+a`);
     await page.keyboard.type("**ab**X**cd**");
     await page.keyboard.press(`${mod}+s`);
+    await waitForSave(page);
     await assertEventually(async () =>
       assert.equal(await fs.readFile(file, "utf8"), "**ab**X**cd**"),
     );
@@ -402,4 +404,14 @@ async function assertEventually(check) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
+}
+
+async function waitForSave(page) {
+  // Reading the destination during atomic replacement can contend on Windows.
+  // A visible save failure must still fail this barrier and retain its diagnostic.
+  await page.waitForFunction(
+    () => document.querySelector("footer > span")?.textContent === "Saved",
+    null,
+    { timeout: 3000 },
+  );
 }

@@ -116,26 +116,8 @@ export function useWorkbench() {
     utf8: boolean,
   ) {
     const text = tab.doc.text;
-    if ((window as any).__DEFT_TRACE)
-      console.log(
-        "[DEBUG-shortcut] save-start",
-        JSON.stringify({
-          text,
-          state: tab.state.doc.toString(),
-          view: tab.view?.state.doc.toString(),
-        }),
-      );
     try {
       const result = await window.deft.save(tab.doc.id, text, copy, utf8);
-      if ((window as any).__DEFT_TRACE)
-        console.log(
-          "[DEBUG-shortcut] save-result",
-          JSON.stringify({
-            sent: text,
-            result: result?.text,
-            current: tab.doc.text,
-          }),
-        );
       if (!result) return false;
       tab.doc = {
         ...tab.doc,
@@ -216,17 +198,6 @@ export function useWorkbench() {
   async function command(action: string) {
     if (closing.current) return;
     const tab = latest.current.current;
-    if ((window as any).__DEFT_TRACE)
-      console.log(
-        "[DEBUG-shortcut] command",
-        JSON.stringify({
-          action,
-          text: tab?.doc.text,
-          state: tab?.state.doc.toString(),
-          view: tab?.view?.state.doc.toString(),
-          saving: tab ? saving.current.has(tab.doc.id) : false,
-        }),
-      );
     if (
       (action.startsWith("format-") || action.startsWith("table-")) &&
       document.activeElement?.matches("input, textarea, select")
