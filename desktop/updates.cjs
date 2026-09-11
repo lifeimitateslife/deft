@@ -17,8 +17,8 @@ function selectUpdate(releases, current, platform, arch) {
   if (!best || !Array.isArray(releases)) return null;
   for (const release of releases) {
     const version =
-      typeof release?.tag_name === "string"
-        ? release.tag_name.replace(/^v/, "")
+      typeof release?.tag_name === "string" && release.tag_name.startsWith("v")
+        ? release.tag_name.slice(1)
         : "";
     const parsed = parts(version);
     if (

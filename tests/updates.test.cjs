@@ -56,6 +56,7 @@ test("drafts, unfinished assets, malformed versions and missing publication are 
     release("95.0.0", {
       assets: [{ name: "DEFT.Setup.95.0.0.exe", state: "uploaded", size: 0 }],
     }),
+    release("0.2.6", { tag_name: "0.2.6" }),
     release("0.2.6-beta.1"),
     release("0.2.6/evil"),
     release("999999999999999999999999999999.0.0"),
