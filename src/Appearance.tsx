@@ -168,7 +168,11 @@ export function Appearance({
           checked={
             !material.clearSupported || settings.backgroundBlur !== false
           }
-          disabled={!material.enabled || !material.clearSupported}
+          disabled={
+            settings.material === "solid" ||
+            !material.enabled ||
+            !material.clearSupported
+          }
           onChange={(event) =>
             void configure({ backgroundBlur: event.target.checked })
           }

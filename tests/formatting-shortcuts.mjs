@@ -79,7 +79,9 @@ for (const extension of ["md", "txt"]) {
     await page.keyboard.type("Menu test");
     await page.keyboard.press(`${mod}+a`);
     await menuCommand(app, page, "Format", "Bold");
-    assert.equal(await editor.textContent(), "**Menu test**");
+    await assertEventually(async () =>
+      assert.equal(await editor.textContent(), "**Menu test**"),
+    );
     await page.keyboard.press(`${mod}+z`);
     assert.equal(await editor.textContent(), "Menu test");
     await page.keyboard.press(`${mod}+Shift+Z`);
@@ -101,7 +103,17 @@ for (const extension of ["md", "txt"]) {
     await page.keyboard.press(`${mod}+z`);
     await page.keyboard.press(`${mod}+End`);
     await menuCommand(app, page, "Format", "Insert table");
-    assert.ok((await editor.textContent()).includes("| Column | Column |"));
+    // Live tables may replace their source text in the DOM. Verify the saved
+    // source, after the native menu action has reached the renderer.
+    await assertEventually(async () => {
+      await page.keyboard.press(`${mod}+s`);
+      assert.ok(
+        (await fs.readFile(file, "utf8")).includes("| Column | Column |"),
+      );
+    });
+    await page.waitForFunction(
+      () => !document.querySelector("footer")?.textContent.includes("Saving"),
+    );
     await page.keyboard.press(`${mod}+z`);
     await page.keyboard.press(`${mod}+a`);
     await app.evaluate(({ BrowserWindow }, mac) => {
@@ -153,11 +165,13 @@ for (const extension of ["md", "txt"]) {
     await page.keyboard.press(
       process.platform === "darwin" ? "Meta+Alt+f" : "Control+h",
     );
-    assert.equal(
-      await page
-        .locator('input[name="replace"]')
-        .evaluate((e) => e === document.activeElement),
-      true,
+    await assertEventually(async () =>
+      assert.equal(
+        await page
+          .locator('input[name="replace"]')
+          .evaluate((e) => e === document.activeElement),
+        true,
+      ),
     );
     await page.keyboard.press("Escape");
     console.log(

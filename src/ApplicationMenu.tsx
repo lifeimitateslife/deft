@@ -117,7 +117,13 @@ export function ApplicationMenu({
   function dismiss(focus = true) {
     setShown(false);
     setPoint(null);
-    if (focus) current?.view?.focus();
+    if (focus) {
+      const preferences = document.querySelector<HTMLButtonElement>(
+        ".settings:not([hidden]) button",
+      );
+      if (preferences) preferences.focus();
+      else current?.view?.focus();
+    }
   }
   useEffect(() => {
     const key = (event: KeyboardEvent) => {

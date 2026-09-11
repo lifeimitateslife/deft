@@ -49,6 +49,23 @@ try {
     exact: true,
   });
   const blur = page.getByLabel("Background blur", { exact: true });
+  if (process.platform !== "darwin") {
+    await page
+      .getByRole("button", { name: "Application menu", exact: true })
+      .click();
+    await page.keyboard.press("Escape");
+    assert.equal(
+      await preferences.isVisible(),
+      true,
+      "Escape closes the application menu before Preferences",
+    );
+    assert.equal(
+      await preferences.evaluate((element) =>
+        element.contains(document.activeElement),
+      ),
+      true,
+    );
+  }
   assert.equal(await blur.isChecked(), true);
   if (process.platform === "win32") {
     await blur.uncheck();

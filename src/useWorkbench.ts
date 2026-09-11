@@ -364,7 +364,14 @@ export function useWorkbench() {
     };
     window.addEventListener("keydown", handler, true);
     const escape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !event.defaultPrevented) setPanel(false);
+      if (
+        event.key === "Escape" &&
+        !event.defaultPrevented &&
+        !document.querySelector(
+          ".application-popup:not([hidden]), .format-menu:not([hidden]), .font-picker:not([hidden]), .link-editor",
+        )
+      )
+        setPanel(false);
     };
     window.addEventListener("keydown", escape);
     return () => {
