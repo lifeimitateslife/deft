@@ -258,12 +258,14 @@ function material(value) {
     nativeTheme.shouldUseHighContrastColors ||
     nativeTheme.prefersReducedTransparency;
   const solid = value === "solid" || reduced || !supported;
-  const clearSupported = process.platform === "win32" && supported;
+  const clearSupported =
+    process.platform === "darwin" ||
+    (process.platform === "win32" && supported);
   const blur = settings.backgroundBlur !== false || !clearSupported;
   if (process.platform === "win32" && supported)
     win.setBackgroundMaterial(solid || !blur ? "none" : "acrylic");
   if (process.platform === "darwin")
-    win.setVibrancy(solid ? null : "under-window");
+    win.setVibrancy(solid || !blur ? null : "hud");
   win.setBackgroundColor(
     solid
       ? nativeTheme.shouldUseDarkColors
@@ -279,11 +281,15 @@ function material(value) {
       ? "System accessibility settings require a solid background."
       : !supported
         ? "Glass requires Windows 11 22H2 or macOS. Solid is used on this system."
-        : !clearSupported
-          ? "Glass uses the system backdrop. Clear translucency is currently available on Windows 11 only."
-          : blur
-            ? "Background blur uses Windows Acrylic. Its strength and inactive-window appearance are controlled by Windows."
-            : "Clear translucency uses your background opacity without Windows blur. Text and controls stay opaque.",
+        : process.platform === "darwin"
+          ? blur
+            ? "Background blur uses macOS vibrancy. Turn it off for clear translucency. Text and controls stay opaque."
+            : "Clear translucency uses your background opacity without macOS blur. Text and controls stay opaque."
+          : !clearSupported
+            ? "Glass uses the system backdrop. Clear translucency is currently available on Windows 11 only."
+            : blur
+              ? "Background blur uses Windows Acrylic. Its strength and inactive-window appearance are controlled by Windows."
+              : "Clear translucency uses your background opacity without Windows blur. Text and controls stay opaque.",
   };
 }
 function register(name, handler) {
@@ -443,6 +449,10 @@ if (locked)
         minHeight: 420,
         title: "DEFT",
         backgroundColor: "#f5f6f8",
+        // macOS needs a transparent native surface for blur-off to reveal the desktop.
+        ...(process.platform === "darwin"
+          ? { transparent: true, vibrancy: "hud", visualEffectState: "active" }
+          : {}),
         icon: path.join(__dirname, "../assets/icon.png"),
         webPreferences: {
           preload: path.join(__dirname, "preload.cjs"),
@@ -452,6 +462,8 @@ if (locked)
           webSecurity: true,
         },
       });
+      // Electron hides native traffic lights on transparent windows by default.
+      if (process.platform === "darwin") win.setWindowButtonVisibility(true);
       win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
       win.webContents.on("before-input-event", (event, input) => {
         const command = shortcutFor(input);

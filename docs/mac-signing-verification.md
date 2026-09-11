@@ -1,5 +1,7 @@
 # Mac packaging repair verification - 2026-09-11
 
+Historical first repair pass. The owner subsequently selected free, unnotarized distribution. The requirement below to obtain paid Apple credentials before publishing was overly restrictive and is superseded by [the current release policy](mac-signing.md). The measured signature failures and tests remain valid historical evidence.
+
 Verdict: incomplete bundle signature repaired in a local development build; public distribution remains blocked on Apple signing credentials and notarization. No new public installer is approved by this report.
 
 ## Inputs and candidate

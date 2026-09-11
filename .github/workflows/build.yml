@@ -42,16 +42,16 @@ jobs:
       - run: npm run test:ui
       - run: npm run test:session
       - run: npm run test:handoff
-      - name: Package development builds or Windows installer
-        if: runner.os != 'macOS' || (!startsWith(github.ref, 'refs/tags/') && !inputs.signed_macos)
+      - name: Package free builds or Windows installer
+        if: runner.os != 'macOS' || !inputs.signed_macos
         run: npx electron-builder ${{ matrix.flags }} --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
           # This step uses only an ad-hoc Mac identity and receives no secrets.
           # electron-builder otherwise skips even ad-hoc signing on PRs.
           CSC_FOR_PULL_REQUEST: "true"
-      - name: Sign and notarize Mac release
-        if: runner.os == 'macOS' && (startsWith(github.ref, 'refs/tags/') || inputs.signed_macos)
+      - name: Sign and notarize optional Mac release
+        if: runner.os == 'macOS' && inputs.signed_macos
         run: npx electron-builder ${{ matrix.flags }} --config electron-builder.mac-release.cjs --publish never
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
@@ -59,18 +59,41 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      - name: Enable transparency on disposable Mac test runner
+        if: runner.os == 'macOS'
+        run: defaults write com.apple.universalaccess reduceTransparency -bool false
       - run: node scripts/package-test.cjs
+      - name: Verify Mac background compositing
+        if: runner.os == 'macOS' && !cancelled()
+        shell: bash
+        env:
+          DEFT_KOFFI_MODULE: ${{ github.workspace }}/.scratch/mac-capture/node_modules/koffi
+          DEFT_EXECUTABLE: ${{ github.workspace }}/release/${{ matrix.platform == 'macos-arm64' && 'mac-arm64' || 'mac' }}/DEFT.app/Contents/MacOS/DEFT
+        run: |
+          npm install --prefix .scratch/mac-capture --no-save koffi@3.2.1
+          node tests/mac-transparency.mjs
+      - name: Save Mac compositor evidence
+        if: runner.os == 'macOS' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deft-${{ matrix.platform }}-verification
+          path: |
+            .scratch/mac-transparency-*/results.json
+            .scratch/mac-transparency-*/*.png
+          if-no-files-found: ignore
+          include-hidden-files: true
       - name: Verify final Mac disk image
         if: runner.os == 'macOS'
         shell: bash
         env:
-          DISTRIBUTION: ${{ startsWith(github.ref, 'refs/tags/') || inputs.signed_macos }}
+          DISTRIBUTION: ${{ inputs.signed_macos }}
         run: |
           set -euo pipefail
           mount="$RUNNER_TEMP/deft-verify"
           hdiutil verify release/*.dmg
           hdiutil attach -readonly -nobrowse -mountpoint "$mount" release/*.dmg
           trap 'verify_status=$?; hdiutil detach "$mount"; exit "$verify_status"' EXIT
+          test -f "$mount/INSTALL-MAC.txt"
           if [[ "$DISTRIBUTION" == "true" ]]; then
             node scripts/verify-mac.cjs "$mount/DEFT.app" --distribution
           else

@@ -324,6 +324,11 @@ for (const extension of ["md", "txt"]) {
     await assertEventually(async () =>
       assert.equal(await page.locator(".tab").count(), count + 1),
     );
+    // The tab appears before React's effect replaces the previous editor.
+    // Wait for the new blank document before focusing and sending keystrokes.
+    await assertEventually(async () =>
+      assert.equal(await editor.textContent(), ""),
+    );
     await editor.focus();
     await page.keyboard.type("Untitled text");
     await page.keyboard.press(`${mod}+a`);

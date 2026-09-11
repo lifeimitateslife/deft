@@ -67,7 +67,17 @@ try {
     );
   }
   assert.equal(await blur.isChecked(), true);
-  if (process.platform === "win32") {
+  const materialSupport = await page.evaluate(() =>
+    window.deft.material("glass"),
+  );
+  if (process.platform === "darwin")
+    console.log("Mac material support:", materialSupport);
+  if (
+    process.platform === "win32" ||
+    (process.platform === "darwin" &&
+      materialSupport.enabled &&
+      materialSupport.clearSupported)
+  ) {
     await blur.uncheck();
     await page.evaluate(() => window.deft.settings({}));
     assert.equal(

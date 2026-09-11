@@ -17,7 +17,7 @@ npm start
 
 `npm run package` builds the NSIS Windows installer (Program Files by default, with a custom destination chooser) or macOS DMG on its corresponding OS. GitHub Actions builds Windows x64, macOS Apple Silicon and macOS Intel packages. The runtime and required production dependencies travel with the application.
 
-Mac development builds use an ad-hoc signature to seal the finished application. This fixes incomplete Electron signatures, but is not approval for public distribution. Public Mac downloads require a Developer ID Application certificate and Apple notarization. See [Mac signing and release checks](docs/mac-signing.md).
+Mac builds use a free ad-hoc signature to seal the finished application. These releases are not Apple-notarized: users may need to approve DEFT once in System Settings > Privacy & Security > Open Anyway. Paid Apple signing is optional, not a requirement to publish. See [Mac signing and release checks](docs/mac-signing.md).
 
 ## Architecture and document safety
 
@@ -40,6 +40,15 @@ npm run test:handoff
 node tests/appearance.mjs
 node scripts/package-test.cjs
 ```
+
+For the optional Mac compositor regression test, install its test-only native capture adapter outside the application dependencies:
+
+```sh
+npm install --prefix .scratch/mac-capture --no-save koffi@3.2.1
+DEFT_KOFFI_MODULE="$PWD/.scratch/mac-capture/node_modules/koffi" node tests/mac-transparency.mjs
+```
+
+Run with the Mac unlocked. This captures only the test rectangle occupied by DEFT and its own synthetic backdrop. It verifies an opaque color marker before accepting pixel measurements, tests light/dark blur/clear opacity and Solid, and exercises resizing. It does not use personal documents or change OS privacy settings. Results and captures are saved under `.scratch/mac-transparency-*`. Use `DEFT_EXECUTABLE` to test the final extracted Mac app. The adapter is not bundled with DEFT; renderer-only screenshots cannot validate the native backdrop.
 
 Native tests launch real Electron windows. Set `DEFT_EXECUTABLE` to test an installed executable. `DEFT_HANDOFF_ROUNDS=40` requests 123 delivery attempts in one handoff run. Windows shell acceptance must first verify that the normal profile has no personal session and that DEFT is not already running.
 
