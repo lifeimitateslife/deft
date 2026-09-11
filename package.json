@@ -1,6 +1,6 @@
 {
   "name": "deft",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "A fast, focused text and Markdown editor.",
   "author": {
     "name": "Life Imitates Life"
@@ -56,7 +56,9 @@
     },
     "mac": {
       "identity": "-",
-      "hardenedRuntime": false,
+      "hardenedRuntime": true,
+      "entitlements": "assets/entitlements.mac.plist",
+      "entitlementsInherit": "assets/entitlements.mac.plist",
       "notarize": false,
       "target": [
         "dmg"
@@ -82,6 +84,26 @@
           "name": "Text document",
           "role": "Editor",
           "icon": "document.icns"
+        }
+      ]
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 270,
+          "y": 100,
+          "type": "file",
+          "path": "docs/INSTALL-MAC.txt"
         }
       ]
     },

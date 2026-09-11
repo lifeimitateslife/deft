@@ -1,0 +1,33 @@
+INSTALL DEFT ON MAC
+
+DEFT is free and open source. This release is not Apple-notarized and has
+no Apple-verified publisher. macOS may block its first launch.
+
+1. Drag DEFT into Applications, then eject the disk image.
+2. Open DEFT from Applications once. If macOS blocks it, dismiss the alert.
+3. Open System Settings > Privacy & Security. Scroll down to Security.
+4. Click Open Anyway for DEFT, authenticate if asked, then click Open.
+
+This saves an exception for DEFT; later launches normally open directly.
+Only approve the copy you downloaded from the official DEFT GitHub release.
+An organization-managed Mac may not allow this exception.
+
+BACKGROUND TRANSPARENCY
+
+In DEFT Preferences, choose Material: Glass and adjust Background opacity.
+Turn off Background blur for clear transparency, or leave it on for the
+softer Mac blur effect. Solid material and the Mac's Reduce Transparency
+accessibility setting intentionally keep the background opaque.
+
+Official downloads and SHA-256 checksums:
+https://github.com/lifeimitateslife/deft/releases
+
+Apple's instructions:
+https://support.apple.com/en-us/102445
+
+Version 0.2.4 repairs the incomplete app signature in the 0.2.3 Mac build.
+If the current download still reports damage, compare its SHA-256 checksum
+with SHA256SUMS.txt on the release page and download it again if it differs.
+If it matches but Open Anyway is unavailable or fails, report your macOS
+version and exact message at https://github.com/lifeimitateslife/deft/issues.
+Do not turn off Gatekeeper or System Integrity Protection system-wide.

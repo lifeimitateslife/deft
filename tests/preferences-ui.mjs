@@ -67,7 +67,7 @@ try {
     );
   }
   assert.equal(await blur.isChecked(), true);
-  if (process.platform === "win32") {
+  if (process.platform === "win32" || process.platform === "darwin") {
     await blur.uncheck();
     await page.evaluate(() => window.deft.settings({}));
     assert.equal(

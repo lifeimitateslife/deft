@@ -23,7 +23,11 @@ On Windows, the installer defaults to `C:\Program Files\DEFT`; choose Browse to 
 
 The [0.2.3 prerelease](https://github.com/lifeimitateslife/deft/releases/tag/v0.2.3) includes checksums, a claim audit, and verification evidence. Try copies of your own files before choosing DEFT as your everyday default.
 
-Published builds are unsigned. Windows may show an unknown-publisher warning. Verify the release checksum before choosing to run the installer. The 0.2.3 Apple Silicon Mac installer has a confirmed incomplete app signature and can show a "damaged" warning even when its download checksum matches. A corrected, Apple-notarized public Mac release is pending signing credentials and release verification. Do not disable system security. See [Mac signing status and release requirements](docs/mac-signing.md).
+DEFT is free and open source. Windows builds have no verified publisher and may show an unknown-publisher warning. Mac builds use a free ad-hoc signature and are not Apple-notarized, so macOS may block the first launch. Download from this repository and verify the release checksum.
+
+**Mac first launch:** Drag DEFT into Applications and try opening it once. If macOS blocks it, dismiss the alert, open **System Settings > Privacy & Security**, scroll down, and choose **Open Anyway** for DEFT. Authenticate if asked, then choose **Open**. macOS saves an exception for that app. These are [Apple's documented steps](https://support.apple.com/en-us/102445); organization-managed Macs may restrict them. The disk image includes `INSTALL-MAC.txt`.
+
+Version 0.2.4 repairs the incomplete app signature in the 0.2.3 Mac download. It does not remove Apple's first-launch security check. Do not disable Gatekeeper or System Integrity Protection system-wide. See [Mac installation and signing details](docs/mac-signing.md).
 
 To choose DEFT for `.md` and `.txt`, use Windows Settings > Apps > Default apps, or Finder > Get Info > Open with > DEFT > Change All. Installation does not require changing defaults.
 
@@ -32,7 +36,7 @@ To choose DEFT for `.md` and `.txt`, use Windows Settings > Apps > Default apps,
 - Plain text and Markdown documents, tabs, native Open/Save dialogs, recent files, and file drops.
 - Live Markdown, exact source, and read-only rendered views. Headings, emphasis, tasks, tables, local images, code, and dollar-delimited math.
 - Find/replace, undo/redo, go to line, word wrap, line numbers, text size, and read-only editing.
-- System appearance by default, plus Light, Dark and custom colors. Preferences includes installed writing and code fonts, independent Glass background opacity and Windows background blur, and Solid material. Native backdrop support depends on the OS.
+- System appearance by default, plus Light, Dark and custom colors. Preferences includes installed writing and code fonts, independent Glass background opacity and background blur, and Solid material. Native backdrop support depends on the OS.
 - HTML export, native Print, and PDF export.
 - Explicit Save by default and optional autosave. Closing the app remembers open writing, including unnamed drafts. Deliberately closing a tab discards its unsaved buffer without deleting its file. Closing the final tab shows the welcome screen; +, New Text and New Markdown start fresh tabs.
 - One compact app menu and tab strip. Selection formatting appears when relevant; full formatting and view controls remain in the menus. Preferences is directly in the application menu, or the native application menu on macOS.
@@ -85,7 +89,7 @@ This is an early prerelease. Rich views are limited to documents under 500,000 c
 
 Live view reveals source for editing tables and math. Some Markdown constructs remain source. Image importing currently accepts PNG. Read-view task boxes are not editable; use Live or Source. No remote image opt-in is provided.
 
-Clear translucency is available on Windows 11 22H2 and later. macOS retains native vibrancy; its blur-off control is disabled. Windows controls Acrylic blur strength and inactive-window appearance. Very low background opacity can reduce readability over busy windows. System accessibility preferences can require a solid background.
+Clear translucency is available on macOS and Windows 11 22H2 and later. On Mac, Glass uses a lighter native vibrancy material; turn off Background blur for a clear view through the window. Background opacity changes the background fill while text and controls stay opaque. Windows continues to control Acrylic blur strength and inactive-window appearance. Very low background opacity can reduce readability over busy windows. System accessibility preferences can require a solid background.
 
 External changes are checked every 2.5 seconds. A writer that changes a file in the short interval between the final check and filesystem replacement cannot be completely excluded. Hard links, extended attributes, and custom Windows ACL preservation are not guaranteed. Deleted or renamed files require reopening or Save As. Windows registration and the 0.2.3 Program Files upgrade were tested; interactive default selection and macOS installation remain unverified; see [verification](docs/verification.md).
 
