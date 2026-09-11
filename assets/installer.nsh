@@ -6,9 +6,9 @@
 
 !macro customInstall
   WriteRegStr SHCTX "Software\Classes\DEFT.Document" "" "DEFT document"
-  WriteRegStr SHCTX "Software\Classes\DEFT.Document\DefaultIcon" "" '$"$INSTDIR\resources\document.ico$"'
-  WriteRegStr SHCTX "Software\Classes\DEFT.Document\shell\open\command" "" '$"$INSTDIR\DEFT.exe$" $"%1$"'
-  WriteRegStr SHCTX "Software\Classes\Applications\DEFT.exe\shell\open\command" "" '$"$INSTDIR\DEFT.exe$" $"%1$"'
+  WriteRegStr SHCTX "Software\Classes\DEFT.Document\DefaultIcon" "" '"$INSTDIR\resources\document.ico"'
+  WriteRegStr SHCTX "Software\Classes\DEFT.Document\shell\open\command" "" '"$INSTDIR\DEFT.exe" "%1"'
+  WriteRegStr SHCTX "Software\Classes\Applications\DEFT.exe\shell\open\command" "" '"$INSTDIR\DEFT.exe" "%1"'
   WriteRegStr SHCTX "Software\DEFT\Capabilities" "ApplicationName" "DEFT"
   WriteRegStr SHCTX "Software\DEFT\Capabilities" "ApplicationDescription" "A fast, focused text and Markdown editor."
   WriteRegStr SHCTX "Software\RegisteredApplications" "DEFT" "Software\DEFT\Capabilities"
@@ -34,3 +34,4 @@
   DeleteRegKey SHCTX "Software\DEFT"
   DeleteRegValue SHCTX "Software\RegisteredApplications" "DEFT"
 !macroend
+
