@@ -1,6 +1,6 @@
 # 001 Refine interface motion
 
-- Status: TODO
+- Status: IMPLEMENTED - packaged Windows appearance tests and native motion capture passed
 - Commit: c837fe5
 - Severity: MEDIUM
 - Category: Interruptibility and physicality

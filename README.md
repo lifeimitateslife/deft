@@ -6,6 +6,8 @@ By **LIFE IMITATES LIFE**
 
 A focused text and Markdown editor for Windows and macOS. Open a file and start writing, without an account, vault, server or subscription.
 
+The interface and behavior below describe the upcoming 0.2.0 build. The currently published 0.1.2 downloads do not yet contain these changes.
+
 <!-- downloads:start -->
 **0.1.2 prerelease**
 
