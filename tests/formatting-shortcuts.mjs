@@ -59,6 +59,7 @@ for (const extension of ["md", "txt"]) {
             focus: document.activeElement?.getAttribute("name"),
             text: document.querySelector(".cm-content")?.textContent,
             footer: document.querySelector("footer")?.textContent,
+            notice: document.querySelector(".notice")?.textContent,
           });
         },
         true,
@@ -379,6 +380,7 @@ for (const extension of ["md", "txt"]) {
             focus: document.activeElement?.outerHTML.slice(0, 200),
             text: document.querySelector(".cm-content")?.textContent,
             footer: document.querySelector("footer")?.textContent,
+            notice: document.querySelector(".notice")?.textContent,
           })),
         },
         null,
