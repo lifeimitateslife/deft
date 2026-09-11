@@ -28,18 +28,20 @@ function selectUpdate(releases, current, platform, arch) {
       !release.published_at
     )
       continue;
-    const installer =
-      platform === "darwin" && ["arm64", "x64"].includes(arch)
-        ? `DEFT-${version}-${arch}.dmg`
-        : platform === "win32" && arch === "x64"
-          ? `DEFT.Setup.${version}.exe`
-          : null;
+    const installers =
+      platform === "darwin" && arch === "arm64"
+        ? [`DEFT-${version}-arm64.dmg`]
+        : platform === "darwin" && arch === "x64"
+          ? [`DEFT-${version}-x64.dmg`, `DEFT-${version}.dmg`]
+          : platform === "win32" && arch === "x64"
+            ? [`DEFT.Setup.${version}.exe`, `DEFT Setup ${version}.exe`]
+            : [];
     if (
-      !installer ||
+      !installers.length ||
       !Array.isArray(release.assets) ||
       !release.assets.some(
         (asset) =>
-          asset?.name === installer &&
+          installers.includes(asset?.name) &&
           asset.state === "uploaded" &&
           asset.size > 0,
       )

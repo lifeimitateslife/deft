@@ -142,3 +142,22 @@ test("offline, rate limits and malformed replies fail quietly and retry after a 
     assert.deepEqual(await checker.check(), { version: "0.2.6" });
   }
 });
+
+test("unrenamed builder artifacts are recognized on Windows and Intel Mac", () => {
+  const feed = [
+    release("0.2.6", {
+      assets: ["DEFT Setup 0.2.6.exe", "DEFT-0.2.6.dmg"].map((name) => ({
+        name,
+        state: "uploaded",
+        size: 100,
+      })),
+    }),
+  ];
+  assert.deepEqual(selectUpdate(feed, "0.2.5", "win32", "x64"), {
+    version: "0.2.6",
+  });
+  assert.deepEqual(selectUpdate(feed, "0.2.5", "darwin", "x64"), {
+    version: "0.2.6",
+  });
+  assert.equal(selectUpdate(feed, "0.2.5", "darwin", "arm64"), null);
+});
