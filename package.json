@@ -55,6 +55,9 @@
       "include": "assets/installer.nsh"
     },
     "mac": {
+      "identity": "-",
+      "hardenedRuntime": false,
+      "notarize": false,
       "target": [
         "dmg"
       ],

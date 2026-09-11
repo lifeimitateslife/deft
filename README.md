@@ -23,7 +23,7 @@ On Windows, the installer defaults to `C:\Program Files\DEFT`; choose Browse to 
 
 The [0.2.3 prerelease](https://github.com/lifeimitateslife/deft/releases/tag/v0.2.3) includes checksums, a claim audit, and verification evidence. Try copies of your own files before choosing DEFT as your everyday default.
 
-Builds are unsigned. Windows may show an unknown-publisher warning. Verify the release checksum before choosing to run the installer. On macOS, drag DEFT to Applications. If macOS blocks this unsigned application, use System Settings > Privacy & Security > Open Anyway for DEFT. Do not disable system security.
+Published builds are unsigned. Windows may show an unknown-publisher warning. Verify the release checksum before choosing to run the installer. The 0.2.3 Apple Silicon Mac installer has a confirmed incomplete app signature and can show a "damaged" warning even when its download checksum matches. A corrected, Apple-notarized public Mac release is pending signing credentials and release verification. Do not disable system security. See [Mac signing status and release requirements](docs/mac-signing.md).
 
 To choose DEFT for `.md` and `.txt`, use Windows Settings > Apps > Default apps, or Finder > Get Info > Open with > DEFT > Change All. Installation does not require changing defaults.
 

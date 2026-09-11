@@ -5,6 +5,11 @@ on:
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      signed_macos:
+        description: Build notarized Mac installers using Apple signing secrets
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -37,10 +42,40 @@ jobs:
       - run: npm run test:ui
       - run: npm run test:session
       - run: npm run test:handoff
-      - run: npx electron-builder ${{ matrix.flags }} --publish never
+      - name: Package development builds or Windows installer
+        if: runner.os != 'macOS' || (!startsWith(github.ref, 'refs/tags/') && !inputs.signed_macos)
+        run: npx electron-builder ${{ matrix.flags }} --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          # This step uses only an ad-hoc Mac identity and receives no secrets.
+          # electron-builder otherwise skips even ad-hoc signing on PRs.
+          CSC_FOR_PULL_REQUEST: "true"
+      - name: Sign and notarize Mac release
+        if: runner.os == 'macOS' && (startsWith(github.ref, 'refs/tags/') || inputs.signed_macos)
+        run: npx electron-builder ${{ matrix.flags }} --config electron-builder.mac-release.cjs --publish never
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       - run: node scripts/package-test.cjs
+      - name: Verify final Mac disk image
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          DISTRIBUTION: ${{ startsWith(github.ref, 'refs/tags/') || inputs.signed_macos }}
+        run: |
+          set -euo pipefail
+          mount="$RUNNER_TEMP/deft-verify"
+          hdiutil verify release/*.dmg
+          hdiutil attach -readonly -nobrowse -mountpoint "$mount" release/*.dmg
+          trap 'verify_status=$?; hdiutil detach "$mount"; exit "$verify_status"' EXIT
+          if [[ "$DISTRIBUTION" == "true" ]]; then
+            node scripts/verify-mac.cjs "$mount/DEFT.app" --distribution
+          else
+            node scripts/verify-mac.cjs "$mount/DEFT.app"
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: deft-${{ matrix.platform }}
