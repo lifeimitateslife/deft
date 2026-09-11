@@ -41,11 +41,11 @@ try {
   );
   await page.emulateMedia({ colorScheme: "dark" });
   const dark = await page
-    .locator("main")
+    .locator(".navigation")
     .evaluate((el) => getComputedStyle(el).backgroundColor);
   await page.emulateMedia({ colorScheme: "light" });
   const light = await page
-    .locator("main")
+    .locator(".navigation")
     .evaluate((el) => getComputedStyle(el).backgroundColor);
   assert.notEqual(
     light,
@@ -99,13 +99,13 @@ try {
         .getByLabel("Appearance", { exact: true })
         .selectOption(appearance);
       await page.getByLabel("Material", { exact: true }).selectOption(material);
-      await page.getByRole("button", { name: "Close settings" }).click();
+      await page.getByRole("button", { name: "Close Preferences" }).click();
       await page.screenshot({
         path: `test-results/${appearance}-${material}.png`,
       });
       await menuCommand(app, page, "View", "Preferences…");
     }
-  await page.getByRole("button", { name: "Close settings" }).click();
+  await page.getByRole("button", { name: "Close Preferences" }).click();
   assert.deepEqual(errors, []);
   const executable =
     executablePath || (await app.evaluate(() => process.execPath));
@@ -234,7 +234,7 @@ try {
   }
   assert.equal((await fs.readFile(pdfPath)).subarray(0, 5).toString(), "%PDF-");
   await app.evaluate(() => globalThis.restoreSaveDialog());
-  await page.getByRole("button", { name: "Close settings" }).click();
+  await page.getByRole("button", { name: "Close Preferences" }).click();
   console.log(
     "PASS real HTML and native PDF export (file-picker selection supplied by test)",
   );

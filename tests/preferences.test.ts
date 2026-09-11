@@ -23,3 +23,23 @@ test("old preferences migrate without replacing custom data or unrelated prefere
   assert.deepEqual(reset.recent, ["note.txt"]);
   assert.equal((reset as any).future, "keep");
 });
+test("appearance reset preserves reduced motion and unrelated settings across persistence", () => {
+  const saved = preferences({
+    reducedMotion: true,
+    autosave: true,
+    recent: ["keep.txt"],
+    glassOpacity: 91,
+    fontFamily: "Georgia",
+    fontSize: 24,
+  });
+  const reset = preferences(
+    JSON.parse(JSON.stringify({ ...saved, ...appearanceDefaults })),
+  );
+  assert.equal(reset.reducedMotion, true);
+  assert.equal(reset.autosave, true);
+  assert.deepEqual(reset.recent, ["keep.txt"]);
+  assert.equal(reset.appearance, "system");
+  assert.equal(reset.fontFamily, "");
+  assert.equal(reset.fontSize, 16);
+  assert.equal(reset.glassOpacity, 68);
+});

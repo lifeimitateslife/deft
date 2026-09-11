@@ -5,9 +5,7 @@ export async function menuCommand(app, page, group, label) {
         const menu = Menu.getApplicationMenu();
         const section = menu.items.find((item) => item.label === group);
         const item = section?.submenu?.items.find(
-          (item) =>
-            item.label === label ||
-            (label === "Preferences…" && item.label === "Settings"),
+          (item) => item.label === label,
         );
         if (!item) throw Error(`Missing native menu ${group}/${label}`);
         item.click(undefined, BrowserWindow.getAllWindows()[0], {});

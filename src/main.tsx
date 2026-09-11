@@ -3,7 +3,7 @@ import { ApplicationMenu } from "./ApplicationMenu";
 import { FormattingToolbar, LinkEditor } from "./FormattingToolbar";
 import { Appearance } from "./Appearance";
 import brandIcon from "../assets/icon.png";
-import { fontStack } from "./preferences";
+import { fontStack, defaults } from "./preferences";
 import { createRoot } from "react-dom/client";
 import { useWorkbench } from "./useWorkbench";
 import type { Mode } from "./types";
@@ -45,33 +45,39 @@ function App() {
     report,
   } = useWorkbench();
   const settingsPanel = useRef<HTMLElement>(null);
+  const preferencesOpener = useRef<HTMLElement | null>(null);
+  const preferencesWasOpen = useRef(false);
 
   const [settingsVisit, setSettingsVisit] = useState(0);
   useEffect(() => {
     if (!panel) {
-      if (settingsPanel.current?.contains(document.activeElement))
-        (
-          document.querySelector(
-            ".application-menu > button",
-          ) as HTMLButtonElement | null
-        )?.focus();
+      if (
+        preferencesWasOpen.current &&
+        (settingsPanel.current?.contains(document.activeElement) ||
+          document.activeElement?.closest(".font-picker") ||
+          document.activeElement === document.body)
+      )
+        preferencesOpener.current?.focus({ preventScroll: true });
+      preferencesWasOpen.current = false;
       return;
     }
+    preferencesWasOpen.current = true;
+    preferencesOpener.current = document.activeElement as HTMLElement;
     setSettingsVisit((visit) => visit + 1);
     settingsPanel.current?.querySelector<HTMLButtonElement>("button")?.focus();
     const dismiss = (event: PointerEvent) => {
       const target = event.target as Node;
+      if (
+        (target as HTMLElement).closest?.(".font-picker, .preferences-toggle")
+      )
+        return;
       if (
         !settingsPanel.current?.contains(target) &&
         !document.querySelector(".application-menu")?.contains(target)
       ) {
         setPanel(false);
         if (settingsPanel.current?.contains(document.activeElement))
-          (
-            document.querySelector(
-              ".application-menu > button",
-            ) as HTMLButtonElement | null
-          )?.focus();
+          preferencesOpener.current?.focus({ preventScroll: true });
       }
     };
     document.addEventListener("pointerdown", dismiss);
@@ -79,11 +85,7 @@ function App() {
   }, [panel]);
   const dismissSettings = () => {
     setPanel(false);
-    (
-      document.querySelector(
-        ".application-menu > button",
-      ) as HTMLButtonElement | null
-    )?.focus();
+    preferencesOpener.current?.focus({ preventScroll: true });
   };
   const [material, setMaterial] = useState({
     enabled: false,
@@ -107,7 +109,7 @@ function App() {
           "--accent": custom.accent,
         }
       : {}),
-    "--glass-tint": `${settings.glassOpacity ?? 68}%`,
+    "--glass-opacity": `${settings.glassOpacity ?? defaults.glassOpacity}%`,
     "--body-font": fontStack(settings.fontFamily),
     "--code-font": fontStack(settings.codeFontFamily, true),
     "--body-size": `${settings.fontSize}px`,
@@ -165,6 +167,30 @@ function App() {
           onClick={() => void command("new-text")}
         >
           +
+        </button>
+        <button
+          className="preferences-toggle"
+          aria-label="Preferences"
+          title="Preferences (Ctrl/Cmd+,)"
+          aria-expanded={panel}
+          aria-controls="settings-panel"
+          onClick={() => setPanel((value) => !value)}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            aria-hidden="true"
+          >
+            <path
+              d="m9 3-.6 2.2-1.5.9-2.2-.6-3 5.1 1.7 1.6v1.8l-1.7 1.6 3 5.1 2.2-.6 1.5.9L9 23h6l.6-2.2 1.5-.9 2.2.6 3-5.1-1.7-1.6V12l1.7-1.6-3-5.1-2.2.6-1.5-.9L15 3Z"
+              transform="translate(2 0) scale(.83)"
+            />
+            <circle cx="12" cy="11" r="3" />
+          </svg>
         </button>
       </div>
       {current ? (
@@ -338,7 +364,7 @@ function App() {
         ref={settingsPanel}
         id="settings-panel"
         className="settings"
-        aria-label="Settings"
+        aria-label="Preferences"
         hidden={!panel}
         inert={!panel}
         onKeyDown={(event) => {
@@ -351,7 +377,7 @@ function App() {
       >
         <div className="settings-title">
           <h2>Preferences</h2>
-          <button aria-label="Close settings" onClick={dismissSettings}>
+          <button aria-label="Close Preferences" onClick={dismissSettings}>
             ×
           </button>
         </div>
@@ -368,6 +394,7 @@ function App() {
           </div>
         </div>
         <Appearance
+          visible={panel}
           key={settingsVisit}
           settings={settings}
           configure={configure}

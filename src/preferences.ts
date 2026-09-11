@@ -1,4 +1,6 @@
 import type { Settings, CustomTheme } from "./types";
+import builtIn from "../desktop/defaults.json";
+export const defaults = builtIn as Settings;
 export const light: CustomTheme = {
   chrome: "#f0f2f5",
   paper: "#ffffff",
@@ -12,29 +14,18 @@ export const dark: CustomTheme = {
   accent: "#9bc2f3",
 };
 export const appearanceDefaults: Partial<Settings> = {
-  appearance: "system",
-  material: "glass",
-  glassOpacity: 68,
+  appearance: defaults.appearance,
+  material: defaults.material,
+  glassOpacity: defaults.glassOpacity,
   custom: undefined,
-  fontFamily: "",
-  codeFontFamily: "",
-  fontSize: 16,
-  reducedMotion: false,
+  fontFamily: defaults.fontFamily,
+  codeFontFamily: defaults.codeFontFamily,
+  fontSize: defaults.fontSize,
 };
 export function preferences(saved: Partial<Settings> = {}): Settings {
   return {
-    appearance: "system",
-    material: "glass",
-    wrap: true,
-    lines: false,
-    fontSize: 16,
-    reducedMotion: false,
-    autosave: false,
-    restoreSession: true,
+    ...defaults,
     recent: [],
-    glassOpacity: 68,
-    fontFamily: "",
-    codeFontFamily: "",
     ...saved,
   };
 }

@@ -75,7 +75,7 @@ try {
       .selectOption(appearance);
     await page.waitForTimeout(500);
     await page
-      .getByRole("button", { name: "Close settings", exact: true })
+      .getByRole("button", { name: "Close Preferences", exact: true })
       .click();
     await page.waitForTimeout(500);
   }

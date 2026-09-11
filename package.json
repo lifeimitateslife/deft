@@ -1,9 +1,9 @@
 {
   "name": "deft",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A fast, focused text and Markdown editor.",
   "author": {
-    "name": "LIFE IMITATES LIFE"
+    "name": "Life Imitates Life"
   },
   "license": "MIT",
   "private": true,
@@ -88,7 +88,7 @@
         "to": "document.ico"
       }
     ],
-    "copyright": "Copyright © 2026 LIFE IMITATES LIFE"
+    "copyright": "Copyright © 2026 Life Imitates Life"
   },
   "dependencies": {
     "iconv-lite": "^0.7.3"

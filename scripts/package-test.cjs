@@ -9,6 +9,7 @@ for (const test of [
   "tests/second-instance.mjs",
   "tests/session.mjs",
   "tests/appearance.mjs",
+  "tests/preferences-ui.mjs",
 ]) {
   const result = spawnSync(process.execPath, [test], {
     stdio: "inherit",

@@ -11,6 +11,7 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { DocumentStore, safeWrite } = require("./storage.cjs");
+const defaults = require("./defaults.json");
 const profile = app.commandLine.getSwitchValue("user-data-dir");
 if (profile) {
   require("node:fs").mkdirSync(profile, { recursive: true });
@@ -98,7 +99,30 @@ function menu() {
   };
   Menu.setApplicationMenu(
     Menu.buildFromTemplate([
-      ...(process.platform === "darwin" ? [{ role: "appMenu" }] : []),
+      ...(process.platform === "darwin"
+        ? [
+            {
+              label: app.name,
+              submenu: [
+                { role: "about" },
+                { type: "separator" },
+                {
+                  label: "Preferences…",
+                  accelerator: "Cmd+,",
+                  click: action("settings"),
+                },
+                { type: "separator" },
+                { role: "services" },
+                { type: "separator" },
+                { role: "hide" },
+                { role: "hideOthers" },
+                { role: "unhide" },
+                { type: "separator" },
+                { role: "quit" },
+              ],
+            },
+          ]
+        : []),
       file,
       { role: "editMenu" },
       {
@@ -170,8 +194,8 @@ function menu() {
           { role: "zoomOut" },
           { role: "togglefullscreen" },
           {
-            label: "Settings",
-            accelerator: "CmdOrCtrl+,",
+            label: "Preferences…",
+            accelerator: process.platform === "darwin" ? undefined : "Ctrl+,",
             click: action("settings"),
           },
         ],
@@ -186,7 +210,7 @@ function menu() {
                 message: "DEFT",
                 icon: path.join(__dirname, "../assets/icon.png"),
                 detail:
-                  "A fast, focused text and Markdown editor.\nLIFE IMITATES LIFE\nVersion " +
+                  "A fast, focused text and Markdown editor.\nLife Imitates Life\nVersion " +
                   app.getVersion(),
               }),
           },
@@ -599,7 +623,7 @@ if (locked)
           return dialog.showMessageBox(win, {
             message: "DEFT",
             detail:
-              "A fast, focused text and Markdown editor.\nLIFE IMITATES LIFE\nVersion " +
+              "A fast, focused text and Markdown editor.\nLife Imitates Life\nVersion " +
               app.getVersion(),
             icon: path.join(__dirname, "../assets/icon.png"),
           });
@@ -616,7 +640,7 @@ if (locked)
       });
       menu();
       if (process.platform !== "darwin") win.removeMenu();
-      material(settings.material || "glass");
+      material(settings.material || defaults.material);
       await win.loadFile(path.join(__dirname, "../dist/index.html"));
     })
     .catch((error) => {

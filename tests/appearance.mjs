@@ -22,25 +22,22 @@ try {
   const before = await page.locator(".cm-content").textContent();
   await menuCommand(app, page, "View", "Preferences…");
   await page.getByRole("button", { name: "Browse installed fonts" }).click();
-  await page.waitForFunction(
-    () =>
-      !document
-        .querySelector(".settings [role=status]")
-        .textContent.includes("Loading"),
+  await page.waitForFunction(() =>
+    /\d+ installed families/.test(
+      document.querySelector(".font-picker [role=status]").textContent,
+    ),
   );
-  const status = await page
-    .locator(".settings [role=status]")
-    .first()
-    .textContent();
-  assert.match(status, /\d+ installed families/);
   const fonts = await page
-    .getByRole("combobox", { name: "Body font", exact: true })
-    .locator("option")
+    .getByRole("dialog", { name: "Installed fonts" })
+    .getByRole("option")
     .allTextContents();
   assert.ok(fonts.length > 2);
   await page
-    .getByRole("combobox", { name: "Body font", exact: true })
-    .selectOption({ label: fonts[1] });
+    .getByRole("dialog", { name: "Installed fonts" })
+    .getByRole("option")
+    .nth(1)
+    .click();
+  await page.getByLabel("Search font families").waitFor({ state: "hidden" });
   await page
     .getByRole("combobox", { name: "Appearance", exact: true })
     .selectOption("custom");
@@ -59,7 +56,7 @@ try {
   assert.equal(await page.locator(".cm-content").textContent(), before);
   assert.equal(await page.locator(".tab.active .dirty").count(), 1);
   await page
-    .getByRole("button", { name: "Close settings", exact: true })
+    .getByRole("button", { name: "Close Preferences", exact: true })
     .click();
   await page.locator(".cm-content").click();
   await page.keyboard.press(`${mod}+z`);
@@ -78,7 +75,7 @@ try {
         .getByRole("combobox", { name: "Material", exact: true })
         .selectOption(material);
       await page
-        .getByRole("button", { name: "Close settings", exact: true })
+        .getByRole("button", { name: "Close Preferences", exact: true })
         .click();
       await page.waitForTimeout(180);
       await page.screenshot({
@@ -87,7 +84,7 @@ try {
       await menuCommand(app, page, "View", "Preferences…");
     }
   await page
-    .getByRole("button", { name: "Reset appearance defaults", exact: true })
+    .getByRole("button", { name: "Reset Appearance to Defaults", exact: true })
     .click();
   assert.equal(
     await page
@@ -134,7 +131,7 @@ try {
   );
   await page.keyboard.press("Escape");
   console.log(
-    `PASS ${status} Custom colors/fonts preserve text and undo; reset isolates appearance; four views; CtrlB/K exact; menus/reduced motion.`,
+    `PASS Custom colors/fonts preserve text and undo; reset isolates appearance; four views; CtrlB/K exact; menus/reduced motion.`,
   );
 } finally {
   await app.evaluate(({ app }) => app.exit(0));

@@ -2,7 +2,7 @@
 
 # DEFT
 
-By **LIFE IMITATES LIFE**
+By **Life Imitates Life**
 
 A focused text and Markdown editor for Windows and macOS. Open a file and start writing, without an account, vault, server or subscription.
 
@@ -32,10 +32,10 @@ To choose DEFT for `.md` and `.txt`, use Windows Settings > Apps > Default apps,
 - Plain text and Markdown documents, tabs, native Open/Save dialogs, recent files, and file drops.
 - Live Markdown, exact source, and read-only rendered views. Headings, emphasis, tasks, tables, local images, code, and dollar-delimited math.
 - Find/replace, undo/redo, go to line, word wrap, line numbers, text size, and read-only editing.
-- System appearance by default, plus Light, Dark and custom colors. Preferences includes installed writing and code fonts, Glass tint and Solid material. Native backdrop support depends on the OS.
+- System appearance by default, plus Light, Dark and custom colors. Preferences includes installed writing and code fonts, Glass background opacity and Solid material. Native backdrop support depends on the OS.
 - HTML export, native Print, and PDF export.
 - Explicit Save by default and optional autosave. Closing the app remembers open writing, including unnamed drafts. Deliberately closing a tab discards its unsaved buffer without deleting its file.
-- One compact app menu and tab strip. Markdown selection formatting appears when relevant; full formatting, view controls and Preferences stay in the menus.
+- One compact app menu and tab strip. Markdown selection formatting appears when relevant; full formatting, view controls and Preferences remain available from the menus; a gear in the tab strip opens Preferences directly.
 
 Any extension, including no extension, can open as text. Markdown extensions select Markdown mode; other files stay plain. UTF-8 and BOM-marked UTF-16 are supported. Binary-looking or invalid UTF-8 files require confirmation; the legacy fallback is reversible Windows-1252. Characters that cannot be saved in the original encoding are rejected; use Save a UTF-8 copy.
 
@@ -58,7 +58,7 @@ Use Ctrl on Windows and Command on macOS.
 | Ctrl/Command+F | Find and replace |
 | Ctrl/Command+L | Go to line |
 | Ctrl/Command+P | Print |
-| Ctrl/Command+, | Settings |
+| Ctrl/Command+, | Preferences |
 
 ## Limits
 

@@ -1,19 +1,22 @@
 import React, { useEffect, useState } from "react";
 import type { Settings, CustomTheme } from "./types";
+import { FontPicker } from "./FontPicker";
 import {
   appearanceDefaults,
   light,
   dark,
   contrast,
   fontStack,
+  defaults,
 } from "./preferences";
-let fontCache: string[] | undefined;
 export function Appearance({
   settings,
+  visible,
   configure,
   material,
 }: {
   settings: Settings;
+  visible: boolean;
   configure: (value: Partial<Settings>) => Promise<void>;
   material: { enabled: boolean; reason: string };
 }) {
@@ -21,34 +24,18 @@ export function Appearance({
     ...settings,
     custom: settings.custom && { ...settings.custom },
   }));
-  const [fonts, setFonts] = useState(fontCache);
-  const [fontStatus, setFontStatus] = useState("");
-  const [search, setSearch] = useState("");
+  const [fontTarget, setFontTarget] = useState<
+    "fontFamily" | "codeFontFamily" | null
+  >(null);
+  useEffect(() => {
+    if (!visible) setFontTarget(null);
+  }, [visible]);
   const custom = settings.custom || light;
   const unreadable =
     Math.min(
       contrast(custom.text, custom.paper),
       contrast(custom.text, custom.chrome),
     ) < 4.5;
-  async function loadFonts() {
-    setFontStatus("Loading installed fonts…");
-    try {
-      const result = await (window as any).queryLocalFonts();
-      fontCache = [
-        ...new Set<string>(
-          result.map((font: { family: string }) => font.family),
-        ),
-      ].sort((a, b) => a.localeCompare(b));
-      setFonts(fontCache);
-      setFontStatus(
-        `${fontCache.length} installed families. Font files stay on this computer.`,
-      );
-    } catch {
-      setFontStatus(
-        "Installed fonts could not be listed. The system font remains available.",
-      );
-    }
-  }
   return (
     <>
       <h3>Appearance</h3>
@@ -119,6 +106,9 @@ export function Appearance({
               </button>
             </div>
           )}
+          <button onClick={() => void configure({ custom: { ...light } })}>
+            Reset custom colors
+          </button>
         </div>
       )}
       <label>
@@ -136,20 +126,45 @@ export function Appearance({
           <option value="solid">Solid</option>
         </select>
       </label>
-      <label>
-        Glass tint
+      <label htmlFor="glass-opacity">
+        Background opacity
+        <output htmlFor="glass-opacity">
+          {settings.glassOpacity ?? defaults.glassOpacity}%
+        </output>
+      </label>
+      <div className="slider-reset">
         <input
-          aria-label="Glass tint"
+          id="glass-opacity"
+          aria-label="Background opacity"
           type="range"
-          min="20"
+          min="0"
           max="95"
-          value={settings.glassOpacity ?? 68}
+          step="1"
+          list="glass-default"
+          value={settings.glassOpacity ?? defaults.glassOpacity}
+          aria-valuetext={`${settings.glassOpacity ?? defaults.glassOpacity}% background fill`}
           disabled={!material.enabled}
           onChange={(event) =>
             void configure({ glassOpacity: Number(event.target.value) })
           }
         />
-      </label>
+        <datalist id="glass-default">
+          <option value={defaults.glassOpacity} label="Default" />
+        </datalist>
+        <button
+          aria-label="Reset background opacity"
+          disabled={!material.enabled}
+          onClick={() =>
+            void configure({ glassOpacity: defaults.glassOpacity })
+          }
+        >
+          Reset
+        </button>
+      </div>
+      <p className="default-hint">
+        Default: {defaults.glassOpacity}%. Lower values show more background
+        through the native blur. Text stays opaque.
+      </p>
       <p>{material.reason}</p>
       <label>
         Reduce motion
@@ -166,19 +181,9 @@ export function Appearance({
         always respected.
       </p>
       <h3>Fonts</h3>
-      <button onClick={() => void loadFonts()}>Browse installed fonts</button>
-      <p role="status">{fontStatus}</p>
-      {fonts && (
-        <label className="font-search">
-          Search families
-          <input
-            type="search"
-            aria-label="Search font families"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </label>
-      )}
+      <button onClick={() => setFontTarget("fontFamily")}>
+        Browse installed fonts
+      </button>
       {(
         [
           ["fontFamily", "Body font"],
@@ -188,33 +193,14 @@ export function Appearance({
         <div key={key}>
           <label>
             {label}
-            <select
+            <button
               aria-label={label}
-              value={settings[key] || ""}
-              onChange={(event) =>
-                void configure({ [key]: event.target.value })
-              }
+              aria-haspopup="dialog"
+              className="font-choice"
+              onClick={() => setFontTarget(key)}
             >
-              <option value="">System default</option>
-              {settings[key] && !fonts?.includes(settings[key]!) && (
-                <option value={settings[key]}>
-                  {settings[key]} (unavailable; using fallback)
-                </option>
-              )}
-              {fonts
-                ?.filter(
-                  (font) =>
-                    font === settings[key] ||
-                    font
-                      .toLocaleLowerCase()
-                      .includes(search.toLocaleLowerCase()),
-                )
-                .map((font) => (
-                  <option key={font} value={font}>
-                    {font}
-                  </option>
-                ))}
-            </select>
+              {settings[key] || "System default"}
+            </button>
           </label>
           <p
             className="font-preview"
@@ -226,6 +212,13 @@ export function Appearance({
           </p>
         </div>
       ))}
+      <FontPicker
+        open={visible && fontTarget !== null}
+        selected={settings[fontTarget || "fontFamily"] || ""}
+        code={fontTarget === "codeFontFamily"}
+        close={() => setFontTarget(null)}
+        apply={(font) => configure({ [fontTarget || "fontFamily"]: font })}
+      />
       <label>
         Text size
         <input
@@ -238,7 +231,7 @@ export function Appearance({
             void configure({
               fontSize: Math.max(
                 11,
-                Math.min(32, Number(event.target.value) || 16),
+                Math.min(32, Number(event.target.value) || defaults.fontSize),
               ),
             })
           }
@@ -246,7 +239,11 @@ export function Appearance({
       </label>
       <button
         onClick={() =>
-          void configure({ fontFamily: "", codeFontFamily: "", fontSize: 16 })
+          void configure({
+            fontFamily: defaults.fontFamily,
+            codeFontFamily: defaults.codeFontFamily,
+            fontSize: defaults.fontSize,
+          })
         }
       >
         Reset fonts
@@ -267,7 +264,7 @@ export function Appearance({
           Revert appearance changes
         </button>
         <button onClick={() => void configure(appearanceDefaults)}>
-          Reset appearance defaults
+          Reset Appearance to Defaults
         </button>
       </div>
     </>

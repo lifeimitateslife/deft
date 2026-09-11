@@ -34,70 +34,96 @@ try {
     background.show();
     main.focus();
   });
+  const responses = {};
   for (const appearance of ["light", "dark"])
-    for (const material of ["glass", "solid"]) {
-      await menuCommand(app, page, "View", "Preferences…");
-      await page
-        .getByLabel("Appearance", { exact: true })
-        .selectOption(appearance);
-      await page.getByLabel("Material", { exact: true }).selectOption(material);
-      await page.getByRole("button", { name: "Close settings" }).click();
-      const samples = [];
-      for (const color of ["ffffff", "101010"]) {
-        await app.evaluate(async (_, color) => {
-          await globalThis.testBackground.loadURL(
-            `data:text/html,<body style="margin:0;background:%23${color}"></body>`,
-          );
-          globalThis.testBackground.show();
-          globalThis.testMain.focus();
-        }, color);
-        await page.waitForTimeout(450);
-        const png = await app.evaluate(async ({ desktopCapturer, screen }) => {
-          const bounds = globalThis.testMain.getBounds();
-          const display = screen.getDisplayMatching(bounds);
-          const sources = await desktopCapturer.getSources({
-            types: ["screen"],
-            thumbnailSize: {
-              width: display.size.width * display.scaleFactor,
-              height: display.size.height * display.scaleFactor,
+    for (const material of ["glass", "solid"])
+      for (const opacity of material === "glass" ? [0, 68, 95] : [68]) {
+        await menuCommand(app, page, "View", "Preferences…");
+        await page
+          .getByLabel("Appearance", { exact: true })
+          .selectOption(appearance);
+        await page
+          .getByLabel("Material", { exact: true })
+          .selectOption(material);
+        if (material === "glass")
+          await page
+            .getByLabel("Background opacity", { exact: true })
+            .fill(String(opacity));
+        await page.getByRole("button", { name: "Close Preferences" }).click();
+        const samples = [];
+        for (const color of ["ffffff", "101010"]) {
+          await app.evaluate(async (_, color) => {
+            await globalThis.testBackground.loadURL(
+              `data:text/html,<body style="margin:0;background:%23${color}"></body>`,
+            );
+            globalThis.testBackground.show();
+            globalThis.testMain.focus();
+          }, color);
+          await page.waitForTimeout(450);
+          const png = await app.evaluate(
+            async ({ desktopCapturer, screen }) => {
+              const bounds = globalThis.testMain.getBounds();
+              const display = screen.getDisplayMatching(bounds);
+              const sources = await desktopCapturer.getSources({
+                types: ["screen"],
+                thumbnailSize: {
+                  width: display.size.width * display.scaleFactor,
+                  height: display.size.height * display.scaleFactor,
+                },
+              });
+              const image = sources.find(
+                (source) => source.display_id === String(display.id),
+              ).thumbnail;
+              const ratio = image.getSize().width / display.size.width;
+              return image
+                .crop({
+                  x: Math.round((bounds.x - display.bounds.x + 10) * ratio),
+                  y: Math.round((bounds.y - display.bounds.y + 45) * ratio),
+                  width: Math.round((bounds.width - 20) * ratio),
+                  height: Math.round((bounds.height - 55) * ratio),
+                })
+                .toPNG()
+                .toString("base64");
             },
-          });
-          const image = sources.find(
-            (source) => source.display_id === String(display.id),
-          ).thumbnail;
-          const ratio = image.getSize().width / display.size.width;
-          return image
-            .crop({
-              x: Math.round((bounds.x - display.bounds.x + 10) * ratio),
-              y: Math.round((bounds.y - display.bounds.y + 45) * ratio),
-              width: Math.round((bounds.width - 20) * ratio),
-              height: Math.round((bounds.height - 55) * ratio),
-            })
-            .toPNG()
-            .toString("base64");
-        });
-        const bytes = Buffer.from(png, "base64");
-        await fs.writeFile(
-          `test-results/glass-${appearance}-${material}-${color}.png`,
-          bytes,
+          );
+          const bytes = Buffer.from(png, "base64");
+          await fs.writeFile(
+            `test-results/glass-${appearance}-${material}-${opacity}-${color}.png`,
+            bytes,
+          );
+          const pixel = await sharp(bytes)
+            .extract({ left: 550, top: 400, width: 20, height: 20 })
+            .removeAlpha()
+            .toBuffer();
+          const stats = await sharp(pixel).stats();
+          samples.push(stats.channels.map((channel) => channel.mean));
+        }
+        console.log(appearance, material, opacity, JSON.stringify(samples));
+        const difference = Math.max(
+          ...samples[0]
+            .slice(0, 3)
+            .map((value, i) => Math.abs(value - samples[1][i])),
         );
-        const pixel = await sharp(bytes)
-          .extract({ left: 550, top: 400, width: 20, height: 20 })
-          .removeAlpha()
-          .stats();
-        samples.push(pixel.channels.map((channel) => channel.mean));
+        responses[`${appearance}-${material}-${opacity}`] = difference;
+        assert.ok(
+          material === "glass" ? difference > 0.1 : difference < 1,
+          `${appearance} ${material} backdrop response: ${difference}`,
+        );
       }
-      console.log(appearance, material, JSON.stringify(samples));
-      const difference = Math.max(
-        ...samples[0]
-          .slice(0, 3)
-          .map((value, i) => Math.abs(value - samples[1][i])),
-      );
-      assert.ok(
-        material === "glass" ? difference > 1 : difference < 1,
-        `${appearance} ${material} backdrop response: ${difference}`,
-      );
-    }
+  for (const appearance of ["light", "dark"]) {
+    assert.ok(
+      responses[`${appearance}-glass-0`] >
+        responses[`${appearance}-glass-68`] + 5,
+    );
+    assert.ok(
+      responses[`${appearance}-glass-68`] >
+        responses[`${appearance}-glass-95`] + 5,
+    );
+  }
+  console.log(
+    "PASS: native background response decreases with opacity; Solid remains opaque",
+    JSON.stringify(responses),
+  );
 } finally {
   await app.evaluate(({ app }) => app.exit(0));
   await app.close();
