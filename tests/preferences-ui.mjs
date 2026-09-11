@@ -1,3 +1,4 @@
+import { placeTestWindow } from "./window-placement.mjs";
 import { _electron as electron } from "playwright";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -15,6 +16,7 @@ const launch = () =>
 let app = await launch();
 try {
   let page = await app.firstWindow();
+  await placeTestWindow(app);
   page.setDefaultTimeout(10000);
   await page.locator(".cm-content").waitFor();
   await page.locator(".cm-content").fill("Keep this unfinished draft 雪");
@@ -173,6 +175,13 @@ try {
     true,
   );
   assert.equal(await page.locator(".cm-content").textContent(), text);
+  await page.locator('button[aria-label="Body font"]').click();
+  assert.equal(
+    await picker.evaluate((el) => getComputedStyle(el).transitionDuration),
+    "0s",
+  );
+  await page.keyboard.press("Escape");
+  await picker.waitFor({ state: "hidden" });
   await page.getByRole("button", { name: "Close Preferences" }).click();
   assert.equal(await gear.evaluate((e) => e === document.activeElement), true);
   await page.locator(".cm-content").focus();
@@ -193,6 +202,7 @@ try {
   await app.close();
   app = await launch();
   page = await app.firstWindow();
+  await placeTestWindow(app);
   await page.locator(".cm-content").waitFor();
   assert.equal(await page.locator(".cm-content").textContent(), text);
   await page.getByRole("button", { name: "Preferences", exact: true }).click();
@@ -211,6 +221,65 @@ try {
   assert.equal(
     await page.getByLabel("Text size", { exact: true }).inputValue(),
     "16",
+  );
+  await page.getByRole("button", { name: "Body font", exact: true }).click();
+  const reopenedPicker = page.getByRole("dialog", { name: "Installed fonts" });
+  await page.waitForFunction(() =>
+    /\d+ installed families/.test(
+      document.querySelector(".font-picker [role=status]").textContent,
+    ),
+  );
+  const persistedFont = (
+    await reopenedPicker.getByRole("option").nth(1).textContent()
+  ).trim();
+  await reopenedPicker.getByRole("option").nth(1).click();
+  await reopenedPicker.waitFor({ state: "hidden" });
+  await page
+    .getByRole("button", { name: "Source and code font", exact: true })
+    .click();
+  await reopenedPicker.getByRole("option").nth(1).click();
+  await reopenedPicker.waitFor({ state: "hidden" });
+  await page.getByLabel("Appearance", { exact: true }).selectOption("custom");
+  await page.getByLabel("Accent hex", { exact: true }).fill("#ad3456");
+  await page.getByLabel("Text size", { exact: true }).fill("22");
+  await page.getByRole("button", { name: "Close Preferences" }).click();
+  await app.evaluate(({ BrowserWindow }) =>
+    BrowserWindow.getAllWindows()[0].close(),
+  );
+  await app.close();
+  app = await launch();
+  page = await app.firstWindow();
+  await placeTestWindow(app);
+  await page.locator(".cm-content").waitFor();
+  assert.equal(await page.locator(".cm-content").textContent(), text);
+  await page.getByRole("button", { name: "Preferences", exact: true }).click();
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Body font", exact: true })
+      .textContent(),
+    persistedFont,
+  );
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Source and code font", exact: true })
+      .textContent(),
+    persistedFont,
+  );
+  assert.equal(
+    await page.getByLabel("Appearance", { exact: true }).inputValue(),
+    "custom",
+  );
+  assert.equal(
+    await page.getByLabel("Accent hex", { exact: true }).inputValue(),
+    "#ad3456",
+  );
+  assert.equal(
+    await page.getByLabel("Text size", { exact: true }).inputValue(),
+    "22",
+  );
+  assert.equal(
+    await page.getByLabel("Reduce motion", { exact: true }).isChecked(),
+    true,
   );
   console.log(
     "PASS: gear, shortcut, font mouse/Enter commit, arrow/Escape/outside isolation, repeated focus, color/font/appearance resets, reduced motion, undo and draft/settings restart",

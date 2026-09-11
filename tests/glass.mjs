@@ -17,8 +17,20 @@ try {
   const page = await app.firstWindow();
   page.setDefaultTimeout(10000);
   await page.locator(".cm-content").waitFor();
-  await app.evaluate(async ({ BrowserWindow }) => {
+  await app.evaluate(async ({ BrowserWindow, screen }) => {
     const main = BrowserWindow.getAllWindows()[0];
+    const secondary = screen
+      .getAllDisplays()
+      .find((display) => display.id !== screen.getPrimaryDisplay().id);
+    if (process.env.DEFT_TEST_SECONDARY === "1") {
+      if (!secondary) throw Error("Requested second monitor is unavailable");
+      main.setBounds({
+        x: secondary.workArea.x + 40,
+        y: secondary.workArea.y + 80,
+        width: Math.min(960, secondary.workArea.width - 80),
+        height: 800,
+      });
+    }
     globalThis.testMain = main;
     const background = new BrowserWindow({
       title: "DEFT synthetic backdrop",
@@ -31,12 +43,17 @@ try {
     await background.loadURL(
       'data:text/html,<body style="margin:0;background:white"></body>',
     );
-    background.setAlwaysOnTop(true);
-    background.show();
-    main.setAlwaysOnTop(true);
+    main.setParentWindow(background);
+    background.showInactive();
     main.show();
     main.moveTop();
     main.focus();
+  });
+  await page.evaluate(() => {
+    const marker = document.createElement("div");
+    marker.style.cssText =
+      "position:fixed;left:20px;top:80px;width:12px;height:12px;background:rgb(17,203,91);z-index:100;pointer-events:none";
+    document.querySelector("main").append(marker);
   });
   const responses = {};
   for (const appearance of ["light", "dark"])
@@ -60,14 +77,23 @@ try {
             await globalThis.testBackground.loadURL(
               `data:text/html,<body style="margin:0;background:%23${color}"></body>`,
             );
-            globalThis.testBackground.show();
+            globalThis.testBackground.showInactive();
             globalThis.testMain.show();
             globalThis.testMain.moveTop();
             globalThis.testMain.focus();
           }, color);
           await page.waitForTimeout(450);
-          const png = await app.evaluate(
+          const capture = await app.evaluate(
             async ({ desktopCapturer, screen }) => {
+              if (
+                !globalThis.testMain.isVisible() ||
+                globalThis.testMain.isMinimized() ||
+                !globalThis.testMain.isFocused() ||
+                !globalThis.testBackground.isVisible()
+              )
+                throw Error(
+                  "Controlled compositor windows are not visible and focused",
+                );
               const bounds = globalThis.testMain.getBounds();
               const display = screen.getDisplayMatching(bounds);
               const sources = await desktopCapturer.getSources({
@@ -81,18 +107,37 @@ try {
                 (source) => source.display_id === String(display.id),
               ).thumbnail;
               const ratio = image.getSize().width / display.size.width;
-              return image
-                .crop({
-                  x: Math.round((bounds.x - display.bounds.x + 10) * ratio),
-                  y: Math.round((bounds.y - display.bounds.y + 45) * ratio),
-                  width: Math.round((bounds.width - 20) * ratio),
-                  height: Math.round((bounds.height - 55) * ratio),
-                })
-                .toPNG()
-                .toString("base64");
+              const content = globalThis.testMain.getContentBounds();
+              return {
+                marker: {
+                  left: Math.round((content.x - bounds.x + 24 - 10) * ratio),
+                  top: Math.round((content.y - bounds.y + 84 - 45) * ratio),
+                  width: 2,
+                  height: 2,
+                },
+                png: image
+                  .crop({
+                    x: Math.round((bounds.x - display.bounds.x + 10) * ratio),
+                    y: Math.round((bounds.y - display.bounds.y + 45) * ratio),
+                    width: Math.round((bounds.width - 20) * ratio),
+                    height: Math.round((bounds.height - 55) * ratio),
+                  })
+                  .toPNG()
+                  .toString("base64"),
+              };
             },
           );
-          const bytes = Buffer.from(png, "base64");
+          const bytes = Buffer.from(capture.png, "base64");
+          const marker = await sharp(
+            await sharp(bytes).extract(capture.marker).toBuffer(),
+          ).stats();
+          assert.ok(
+            [17, 203, 91].every(
+              (value, index) =>
+                Math.abs(marker.channels[index].mean - value) < 2,
+            ),
+            "Capture must contain the DEFT test marker, not another desktop/window",
+          );
           await fs.writeFile(
             `test-results/glass-${appearance}-${material}-${opacity}-${color}.png`,
             bytes,

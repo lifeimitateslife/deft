@@ -1,3 +1,4 @@
+import { placeTestWindow } from "./window-placement.mjs";
 import { menuCommand, openFormat } from "./menu-helpers.mjs";
 import { _electron as electron } from "playwright";
 import fs from "node:fs/promises";
@@ -15,6 +16,7 @@ const app = await electron.launch({
 const mod = process.platform === "darwin" ? "Meta" : "Control";
 try {
   const page = await app.firstWindow();
+  await placeTestWindow(app);
   page.setDefaultTimeout(10000);
   console.log("Appearance window ready");
   await page.locator(".cm-content").waitFor();

@@ -1,3 +1,4 @@
+import { placeTestWindow } from "./window-placement.mjs";
 import { menuCommand, openFormat } from "./menu-helpers.mjs";
 import { _electron as electron } from "playwright";
 import fs from "node:fs/promises";
@@ -103,6 +104,7 @@ try {
   });
   {
     const page = await app.firstWindow();
+    await placeTestWindow(app);
     page.setDefaultTimeout(5000);
     await page
       .getByRole("button", { name: path.basename(files[0]), exact: false })

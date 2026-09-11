@@ -7,11 +7,11 @@ By **Life Imitates Life**
 A focused text and Markdown editor for Windows and macOS. Open a file and start writing, without an account, vault, server or subscription.
 
 <!-- downloads:start -->
-**0.2.0 prerelease**
+**0.2.1 prerelease**
 
-- [Download for Windows (.exe, x64)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.0/DEFT.Setup.0.2.0.exe)
-- [Download for Mac (Apple Silicon)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.0/DEFT-0.2.0-arm64.dmg)
-- [Download for Mac (Intel)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.0/DEFT-0.2.0-x64.dmg)
+- [Download for Windows (.exe, x64)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.1/DEFT.Setup.0.2.1.exe)
+- [Download for Mac (Apple Silicon)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.1/DEFT-0.2.1-arm64.dmg)
+- [Download for Mac (Intel)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.1/DEFT-0.2.1-x64.dmg)
 - [All releases](https://github.com/lifeimitateslife/deft/releases)
 <!-- downloads:end -->
 
@@ -21,7 +21,7 @@ A focused text and Markdown editor for Windows and macOS. Open a file and start 
 
 On Windows, the installer defaults to `C:\Program Files\DEFT`; choose Browse to use a custom folder. Installation requires administrator approval. Open the Mac disk image and drag DEFT into Applications. The application includes its runtime; Node.js, Git and developer tools are only needed to build from source.
 
-The [0.2.0 prerelease](https://github.com/lifeimitateslife/deft/releases/tag/v0.2.0) includes checksums, a claim audit, and verification evidence. Try copies of your own files before choosing DEFT as your everyday default.
+The [0.2.1 prerelease](https://github.com/lifeimitateslife/deft/releases/tag/v0.2.1) includes checksums, a claim audit, and verification evidence. Try copies of your own files before choosing DEFT as your everyday default.
 
 Builds are unsigned. Windows may show an unknown-publisher warning. Verify the release checksum before choosing to run the installer. On macOS, drag DEFT to Applications. If macOS blocks this unsigned application, use System Settings > Privacy & Security > Open Anyway for DEFT. Do not disable system security.
 
@@ -66,7 +66,7 @@ This is an early prerelease. Rich views are limited to documents under 500,000 c
 
 Live view reveals source for editing tables and math. Some Markdown constructs remain source. Image importing currently accepts PNG. Read-view task boxes are not editable; use Live or Source. No remote image opt-in is provided.
 
-External changes are checked every 2.5 seconds. A writer that changes a file in the short interval between the final check and filesystem replacement cannot be completely excluded. Hard links, extended attributes, and custom Windows ACL preservation are not guaranteed. Deleted or renamed files require reopening or Save As. Windows registration and per-user installation were tested; interactive default selection and macOS installation remain unverified; see [verification](docs/verification.md).
+External changes are checked every 2.5 seconds. A writer that changes a file in the short interval between the final check and filesystem replacement cannot be completely excluded. Hard links, extended attributes, and custom Windows ACL preservation are not guaranteed. Deleted or renamed files require reopening or Save As. Windows registration and a Program Files upgrade were tested; interactive default selection and macOS installation remain unverified; see [verification](docs/verification.md).
 
 Settings and recovery live in `%APPDATA%/deft` on Windows and `~/Library/Application Support/deft` on macOS. Uninstalling does not delete documents. Preferences lets you turn off restoration of the previous session. Uninstall through Windows Settings > Apps > Installed apps > DEFT > Uninstall, or remove DEFT from Applications on macOS. Settings and recovery are preserved when uninstalling.
 

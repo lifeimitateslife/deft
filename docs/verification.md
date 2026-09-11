@@ -2,6 +2,18 @@
 
 This page records the scope of testing, not a guarantee against every filesystem or OS failure.
 
+## 0.2.1 release
+
+The [release source and three-platform CI](https://github.com/lifeimitateslife/deft/actions/runs/34569487931) passed 22 unit tests and native packaged workflows on Windows x64, Apple Silicon and Intel Mac. Preferences tests cover gear/shortcut access, font confirmation and dismissal, nested focus, resets, reduced motion, selection/undo and restart persistence. Additional installed Windows checks retain chosen body/code fonts, Custom colors and text size across restart.
+
+The final Windows installer upgraded `C:\Program Files\DEFT` successfully. Its installed executable and app.asar match the freshly extracted CI artifact. Publisher metadata reads Life Imitates Life, the Start menu points to Program Files, and existing owner preferences/recovery bytes were preserved. Two separate installed runs each passed 123 file handoffs, alongside native editing/export and session recovery tests.
+
+Controlled compositor checks against both the extracted and installed app passed on the second monitor. At opacity 0/68/95, white-versus-dark backdrop response was 86/28/4 RGB levels in both themes; Solid response was zero. A marker validates that each capture contains DEFT. Initial fullscreen-obstructed captures were rejected and excluded. Native blur remains controlled by the OS, and very low opacity can reduce contrast.
+
+The exact approved icon remains unchanged; all eight executable and uninstaller icon payloads match. The README screenshot comes from the installed 0.2.1 app using synthetic writing. See the [artifact claim audit](https://github.com/lifeimitateslife/deft/releases/download/v0.2.1/CLAIM-AUDIT.md) for individual claims, evidence and gaps. All three published installer downloads were fetched anonymously in full and matched the release checksums.
+
+Manual Mac installation/Dock acceptance, a new custom-folder installation, live OS accessibility toggles and a clean Windows VM were not repeated. Earlier evidence for unchanged paths remains explicitly versioned below. Builds remain unsigned and not notarized. Local regenerable scratch/build files remain because the prior cleanup approval block is still in effect.
+
 ## 0.2.0 release
 
 The source has 21 passing unit tests. Packaged Windows tests cover compact menus, installed fonts, custom colors, session restore and deliberate discard, shutdown locking, and file-handoff behavior. Three consecutive installed-candidate runs each passed 123 handoffs. Separately, three runs against the freshly extracted final CI installer each passed 123 handoffs. The final artifact also passed native editing, export, session, appearance and compositor tests locally. Revo 2.6.0 displayed the installed candidate, approved icon and LIFE IMITATES LIFE publisher.

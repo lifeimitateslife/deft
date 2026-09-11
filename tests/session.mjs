@@ -1,3 +1,4 @@
+import { placeTestWindow } from "./window-placement.mjs";
 import { _electron as electron } from "playwright";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -23,6 +24,7 @@ async function launch(files = []) {
     env,
   });
   const page = await app.firstWindow();
+  await placeTestWindow(app);
   await page.locator(".cm-content").waitFor();
   await app.evaluate(({ dialog }) => {
     dialog.showMessageBox = async () => {
