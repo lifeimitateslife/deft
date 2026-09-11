@@ -9,9 +9,9 @@ Open a file, work, save. No account, vault, server, or subscription.
 ## Install
 
 Download from [Releases](https://github.com/lifeimitateslife/deft/releases).
-On Windows x64, use **DEFT.Setup.0.1.1.exe**. On an Apple Silicon Mac, use the arm64 DMG; Intel Macs use the x64 DMG.
+On Windows x64, use **DEFT.Setup.0.1.2.exe**. On an Apple Silicon Mac, use the arm64 DMG; Intel Macs use the x64 DMG.
 
-The [0.1.1 prerelease](https://github.com/lifeimitateslife/deft/releases/tag/v0.1.1) includes checksums, a claim audit, and verification evidence. Try copies of your own files before choosing DEFT as your everyday default.
+The [0.1.2 prerelease](https://github.com/lifeimitateslife/deft/releases/tag/v0.1.2) includes checksums, a claim audit, and verification evidence. Try copies of your own files before choosing DEFT as your everyday default.
 
 Builds are unsigned. Windows may show an unknown-publisher warning. Verify the release checksum before choosing to run the installer. On macOS, drag DEFT to Applications. If macOS blocks this unsigned application, use System Settings > Privacy & Security > Open Anyway for DEFT. Do not disable system security.
 

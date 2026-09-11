@@ -129,13 +129,11 @@ try {
       await page.keyboard.press("Control+End");
       await page.keyboard.type("Saved through shell test");
       await page.getByRole("button", { name: "Save", exact: true }).click();
-      for (let n = 0; n < 100; n++) {
-        if (
-          (await fs.readFile(file, "utf8")).endsWith("Saved through shell test")
-        )
-          break;
-        await page.waitForTimeout(50);
-      }
+      await page
+        .locator("footer > span")
+        .first()
+        .filter({ hasText: /^Saved$/ })
+        .waitFor();
       assert.ok(
         (await fs.readFile(file, "utf8")).endsWith("Saved through shell test"),
       );

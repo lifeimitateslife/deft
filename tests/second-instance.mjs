@@ -166,11 +166,13 @@ try {
       `${process.platform === "darwin" ? "Meta" : "Control"}+End`,
     );
     await page.keyboard.type("Saved edit");
+    await page.locator(".tab.active .dirty").waitFor();
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    for (let attempt = 0; attempt < 100; attempt++) {
-      if ((await fs.readFile(file, "utf8")).endsWith("Saved edit")) break;
-      await page.waitForTimeout(50);
-    }
+    await page
+      .locator("footer > span")
+      .first()
+      .filter({ hasText: /^Saved$/ })
+      .waitFor();
     assert.ok((await fs.readFile(file, "utf8")).endsWith("Saved edit"));
     await page.keyboard.press(
       `${process.platform === "darwin" ? "Meta" : "Control"}+w`,
