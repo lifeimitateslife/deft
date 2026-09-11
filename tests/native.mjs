@@ -39,14 +39,19 @@ try {
     await page.locator("main").getAttribute("data-appearance"),
     "system",
   );
+  const visibleBackground = () =>
+    page.locator(".cm-content").evaluate((element) => {
+      for (let surface = element; surface; surface = surface.parentElement) {
+        const color = getComputedStyle(surface).backgroundColor;
+        if (color !== "rgba(0, 0, 0, 0)" && color !== "transparent")
+          return color;
+      }
+      throw Error("The editor has no painted background surface");
+    });
   await page.emulateMedia({ colorScheme: "dark" });
-  const dark = await page
-    .locator(".document")
-    .evaluate((el) => getComputedStyle(el).backgroundColor);
+  const dark = await visibleBackground();
   await page.emulateMedia({ colorScheme: "light" });
-  const light = await page
-    .locator(".document")
-    .evaluate((el) => getComputedStyle(el).backgroundColor);
+  const light = await visibleBackground();
   assert.notEqual(
     light,
     dark,

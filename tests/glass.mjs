@@ -31,7 +31,11 @@ try {
     await background.loadURL(
       'data:text/html,<body style="margin:0;background:white"></body>',
     );
+    background.setAlwaysOnTop(true);
     background.show();
+    main.setAlwaysOnTop(true);
+    main.show();
+    main.moveTop();
     main.focus();
   });
   const responses = {};
@@ -57,6 +61,8 @@ try {
               `data:text/html,<body style="margin:0;background:%23${color}"></body>`,
             );
             globalThis.testBackground.show();
+            globalThis.testMain.show();
+            globalThis.testMain.moveTop();
             globalThis.testMain.focus();
           }, color);
           await page.waitForTimeout(450);
