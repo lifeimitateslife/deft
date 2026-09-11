@@ -21,21 +21,21 @@ for (const extension of ["md", "txt"]) {
     ],
     env,
   });
-  await app.evaluate(({ BrowserWindow }) => {
-    globalThis.shortcutTrace = [];
-    const wc = BrowserWindow.getAllWindows()[0].webContents;
-    const send = wc.send.bind(wc);
-    wc.send = (channel, ...args) => {
-      if (channel === "action")
-        globalThis.shortcutTrace.push({ action: args[0] });
-      return send(channel, ...args);
-    };
-    wc.on("before-input-event", (_, input) => {
-      if (input.type === "keyDown") globalThis.shortcutTrace.push(input);
-    });
-  });
   try {
     const page = await app.firstWindow();
+    await app.evaluate(({ BrowserWindow }) => {
+      globalThis.shortcutTrace = [];
+      const wc = BrowserWindow.getAllWindows()[0].webContents;
+      const send = wc.send.bind(wc);
+      wc.send = (channel, ...args) => {
+        if (channel === "action")
+          globalThis.shortcutTrace.push({ action: args[0] });
+        return send(channel, ...args);
+      };
+      wc.on("before-input-event", (_, input) => {
+        if (input.type === "keyDown") globalThis.shortcutTrace.push(input);
+      });
+    });
     await placeTestWindow(app);
     const editor = page.locator(".cm-content");
     await editor.waitFor();

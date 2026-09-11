@@ -26,7 +26,7 @@ export function useWorkbench() {
       settings: Settings;
       current?: DocumentEditor;
     }>({ tabs: [], active: "", settings: defaults }),
-    saving = useRef(new Set<string>()),
+    saving = useRef(new Map<string, Promise<boolean>>()),
     initialized = useRef(false),
     recoveryReady = useRef(false),
     closing = useRef(false),
@@ -97,9 +97,24 @@ export function useWorkbench() {
     setSettings(next);
   }
   async function save(tab = current, copy = false, utf8 = false) {
-    if (!tab || saving.current.has(tab.doc.id)) return false;
-    saving.current.add(tab.doc.id);
+    if (!tab) return false;
+    const previous = saving.current.get(tab.doc.id);
+    if (previous) {
+      if (!(await previous) || !latest.current.tabs.includes(tab)) return false;
+      return save(tab, copy, utf8);
+    }
     setBusy(true);
+    const operation = Promise.resolve().then(() =>
+      performSave(tab, copy, utf8),
+    );
+    saving.current.set(tab.doc.id, operation);
+    return operation;
+  }
+  async function performSave(
+    tab: DocumentEditor,
+    copy: boolean,
+    utf8: boolean,
+  ) {
     const text = tab.doc.text;
     try {
       const result = await window.deft.save(tab.doc.id, text, copy, utf8);

@@ -11,6 +11,7 @@ for (const test of [
   "tests/appearance.mjs",
   "tests/preferences-ui.mjs",
   "tests/formatting-shortcuts.mjs",
+  "tests/save-in-flight.mjs",
   "tests/clipboard.mjs",
 ]) {
   const result = spawnSync(process.execPath, [test], {

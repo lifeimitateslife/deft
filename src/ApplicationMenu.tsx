@@ -127,14 +127,18 @@ export function ApplicationMenu({
   }
   useEffect(() => {
     const key = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
       if (event.key === "Escape" && shown) {
         event.preventDefault();
         event.stopPropagation();
         dismiss();
       }
       if (
-        event.key === "F10" ||
-        (event.altKey && event.key.toLowerCase() === "f")
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.shiftKey &&
+        (event.key === "F10" ||
+          (event.altKey && event.key.toLowerCase() === "f"))
       ) {
         event.preventDefault();
         if (shown) dismiss();
