@@ -21,11 +21,44 @@ for (const extension of ["md", "txt"]) {
     ],
     env,
   });
+  await app.evaluate(({ BrowserWindow }) => {
+    globalThis.shortcutTrace = [];
+    const wc = BrowserWindow.getAllWindows()[0].webContents;
+    const send = wc.send.bind(wc);
+    wc.send = (channel, ...args) => {
+      if (channel === "action")
+        globalThis.shortcutTrace.push({ action: args[0] });
+      return send(channel, ...args);
+    };
+    wc.on("before-input-event", (_, input) => {
+      if (input.type === "keyDown") globalThis.shortcutTrace.push(input);
+    });
+  });
   try {
     const page = await app.firstWindow();
     await placeTestWindow(app);
     const editor = page.locator(".cm-content");
     await editor.waitFor();
+    await page.evaluate(() => {
+      globalThis.shortcutTrace = [];
+      document.addEventListener(
+        "keydown",
+        (event) => {
+          globalThis.shortcutTrace.push({
+            key: event.key,
+            code: event.code,
+            meta: event.metaKey,
+            alt: event.altKey,
+            control: event.ctrlKey,
+            altGraph: event.getModifierState("AltGraph"),
+            focus: document.activeElement?.getAttribute("name"),
+            text: document.querySelector(".cm-content")?.textContent,
+            footer: document.querySelector("footer")?.textContent,
+          });
+        },
+        true,
+      );
+    });
     const mod = process.platform === "darwin" ? "Meta" : "Control";
     await editor.click();
     await page.keyboard.press(`${mod}+a`);
@@ -329,6 +362,25 @@ for (const extension of ["md", "txt"]) {
     console.log(
       `${extension}: saved file reopen, explicit formatted view, untitled formatting, new/tab shortcuts PASS`,
     );
+  } catch (error) {
+    const page = await app.firstWindow();
+    console.error(
+      "Shortcut failure diagnostics",
+      JSON.stringify(
+        {
+          native: await app.evaluate(() => globalThis.shortcutTrace.slice(-25)),
+          renderer: await page.evaluate(() => ({
+            keys: globalThis.shortcutTrace.slice(-25),
+            focus: document.activeElement?.outerHTML.slice(0, 200),
+            text: document.querySelector(".cm-content")?.textContent,
+            footer: document.querySelector("footer")?.textContent,
+          })),
+        },
+        null,
+        2,
+      ),
+    );
+    throw error;
   } finally {
     await app.close();
   }
