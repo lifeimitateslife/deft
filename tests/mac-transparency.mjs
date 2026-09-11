@@ -176,6 +176,9 @@ try {
     assert.ok((await response(`${appearance}-solid`)) < 2);
   }
   await configure("light", "glass", false, 0);
+  // Establish a rendered clear frame before resizing. Otherwise macOS can
+  // resize a cached snapshot of the preferences panel we just closed.
+  assert.ok((await response("clear-before-resize")) > 220);
   await app.evaluate(() => globalThis.deftTestWindow.setSize(740, 560));
   assert.ok((await response("clear-after-resize")) > 220);
   assert.equal(
