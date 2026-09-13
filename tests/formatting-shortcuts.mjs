@@ -292,21 +292,15 @@ for (const extension of ["md", "txt"]) {
         0,
       ),
     );
-    if (process.platform === "darwin") {
-      await app.evaluate(({ Menu, BrowserWindow }, name) => {
-        const recent = Menu.getApplicationMenu()
-          .items.find((i) => i.label === "File")
-          .submenu.items.find((i) => i.label === "Recent Files");
-        recent.submenu.items
-          .find((i) => i.label === name)
-          .click(undefined, BrowserWindow.getAllWindows()[0], {});
-      }, path.basename(file));
-    } else {
-      await menuCommand(app, page, "File", "Recent Files");
-      await page
-        .getByRole("menuitem", { name: path.basename(file), exact: true })
-        .click();
-    }
+    await page
+      .getByRole("button", { name: "Application menu", exact: true })
+      .click();
+    await page
+      .getByRole("menuitem", { name: "Recent files", exact: true })
+      .click();
+    await page
+      .getByRole("menuitem", { name: path.basename(file), exact: true })
+      .click();
     await page
       .getByRole("button", {
         name: `Close ${path.basename(file)}`,

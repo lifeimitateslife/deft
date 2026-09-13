@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer, webUtils } = require("electron");
 const commands = [
   "init",
   "updates",
+  "windowState",
   "openUpdate",
   "create",
   "open",

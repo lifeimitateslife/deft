@@ -20,6 +20,7 @@ export const appearanceDefaults: Partial<Settings> = {
   glassOpacity: defaults.glassOpacity,
   backgroundBlur: defaults.backgroundBlur,
   backgroundBlurStrength: defaults.backgroundBlurStrength,
+  translucentTitleBar: defaults.translucentTitleBar,
   custom: undefined,
   fontFamily: defaults.fontFamily,
   codeFontFamily: defaults.codeFontFamily,

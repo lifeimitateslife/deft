@@ -40,7 +40,6 @@ export function ApplicationMenu({
     [point, setPoint] = useState<{ x: number; y: number } | null>(null);
   const root = useRef<HTMLDivElement>(null),
     trigger = useRef<HTMLButtonElement>(null),
-    recentTrigger = useRef<HTMLButtonElement>(null),
     list = useRef<HTMLDivElement>(null);
   const editable =
     !!current && !current.doc.readOnly && current.doc.mode !== "read";
@@ -50,7 +49,6 @@ export function ApplicationMenu({
       ["New Markdown", "new-markdown"],
       ["New tab", "new-text"],
       ["Open…", "open"],
-      ["Recent Files", "recent"],
       ["Save", "save"],
       ["Save As…", "save-as"],
       ["Export HTML…", "export"],
@@ -124,7 +122,7 @@ export function ApplicationMenu({
       );
       if (preferences) preferences.focus();
       else if (current?.view) current.view.focus();
-      else (recentTrigger.current || trigger.current)?.focus();
+      else trigger.current?.focus();
     }
   }
   useEffect(() => {
@@ -201,42 +199,26 @@ export function ApplicationMenu({
         ].includes(action) && !current;
   return (
     <div className="application-menu" ref={root}>
-      {window.deft.platform !== "darwin" && (
-        <button
-          ref={trigger}
-          aria-label="Application menu"
-          title="Application menu (Alt+F / F10)"
-          aria-haspopup="menu"
-          aria-expanded={shown}
-          onClick={() => {
-            setGroup("");
-            setPoint(null);
-            setShown(!shown);
-          }}
-        >
-          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-            <path
-              d="M3 4.5h12M3 9h12M3 13.5h12"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
-      )}
       <button
-        ref={recentTrigger}
-        aria-label="Recent files"
-        title="Open recent files"
+        ref={trigger}
+        aria-label="Application menu"
+        title="Application menu (Alt+F / F10)"
         aria-haspopup="menu"
-        aria-expanded={shown && group === "recent"}
+        aria-expanded={shown}
         onClick={() => {
-          setGroup("recent");
+          setGroup("");
           setPoint(null);
-          setShown(!shown || group !== "recent");
+          setShown(!shown);
         }}
       >
-        Recent
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+          <path
+            d="M3 4.5h12M3 9h12M3 13.5h12"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+        </svg>
       </button>
       <div
         ref={list}
@@ -327,6 +309,15 @@ export function ApplicationMenu({
           </>
         ) : (
           <>
+            <button
+              role="menuitem"
+              aria-label="Recent files"
+              aria-haspopup="menu"
+              onClick={() => setGroup("recent")}
+            >
+              Recent files <span aria-hidden="true">›</span>
+            </button>
+            <div role="separator" />
             {Object.keys(groups)
               .filter((name) => name !== "recent")
               .map((name) => (

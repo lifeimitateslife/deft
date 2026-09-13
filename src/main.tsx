@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { TabStrip } from "./TabStrip";
+import { TitleBar } from "./TitleBar";
 import { ApplicationMenu } from "./ApplicationMenu";
 import { FormattingToolbar, LinkEditor } from "./FormattingToolbar";
 import { UpdateNotice } from "./UpdateNotice";
@@ -130,7 +131,9 @@ function App() {
       data-appearance={settings.appearance}
       data-material={settings.material}
       data-reduced-motion={settings.reducedMotion}
+      data-translucent-titlebar={settings.translucentTitleBar === true}
     >
+      <TitleBar />
       <div className="navigation">
         <ApplicationMenu
           current={current}
@@ -286,20 +289,6 @@ function App() {
             <button onClick={() => void open()}>Open a file</button>
           </div>
           <p className="hint">Or drop a text file here.</p>
-          {settings.recent.length > 0 && (
-            <div className="recents">
-              <h2>Recent files</h2>
-              {settings.recent.map((file) => (
-                <button
-                  key={file}
-                  title={file}
-                  onClick={() => void open([file])}
-                >
-                  {file.split(/[/\\]/).at(-1)}
-                </button>
-              ))}
-            </div>
-          )}
           <small>LIFE IMITATES LIFE</small>
         </section>
       )}

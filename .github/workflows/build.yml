@@ -83,6 +83,8 @@ jobs:
             .scratch/windows-blur-strength-*/results.json
             .scratch/windows-blur-strength-*/*.png
             .scratch/windows-blur-ui-*/*.png
+            .scratch/titlebar-*/results.json
+            .scratch/titlebar-*/*.png
           if-no-files-found: ignore
           include-hidden-files: true
       - name: Save tabs and recent files evidence
@@ -111,6 +113,7 @@ jobs:
           npm install --prefix .scratch/mac-capture --no-save koffi@3.2.1
           node tests/mac-transparency.mjs
           node tests/mac-blur-strength.mjs
+          node tests/titlebar-ui.mjs
       - name: Save Mac compositor evidence
         if: runner.os == 'macOS' && always()
         uses: actions/upload-artifact@v4
@@ -122,6 +125,8 @@ jobs:
             .scratch/mac-blur-strength-*/results.json
             .scratch/mac-blur-strength-*/*.png
             .scratch/mac-blur-ui-*/*.png
+            .scratch/titlebar-*/results.json
+            .scratch/titlebar-*/*.png
           if-no-files-found: ignore
           include-hidden-files: true
       - name: Verify final Mac disk image
