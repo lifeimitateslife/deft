@@ -15,9 +15,12 @@ An organization-managed Mac may not allow this exception.
 BACKGROUND TRANSPARENCY
 
 In DEFT Preferences, choose Material: Glass and adjust Background opacity.
-Turn off Background blur for clear transparency, or leave it on for the
-softer Mac blur effect. Solid material and the Mac's Reduce Transparency
-accessibility setting intentionally keep the background opaque.
+Set Background blur to 0 for clear transparency, or increase its strength
+for a softer background. Blur and opacity are independent. Enable
+Translucent title bar to apply those settings to the DEFT title surface too.
+Solid material and the Mac's Reduce Transparency accessibility setting
+intentionally keep the background opaque. If native adjustable blur is
+unavailable, DEFT falls back to the system's standard on/off blur control.
 
 Official downloads and SHA-256 checksums:
 https://github.com/lifeimitateslife/deft/releases
