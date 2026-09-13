@@ -7,17 +7,17 @@ By **Life Imitates Life**
 A focused text and Markdown editor for Windows and macOS. Open a file and start writing, without an account, vault, server or subscription.
 
 <!-- downloads:start -->
-**0.2.7 prerelease**
+**0.2.8 prerelease**
 
-- [Download for Windows (.exe, x64)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.7/DEFT.Setup.0.2.7.exe)
-- [Download for Mac (Apple Silicon)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.7/DEFT-0.2.7-arm64.dmg)
-- [Download for Mac (Intel)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.7/DEFT-0.2.7-x64.dmg)
+- [Download for Windows (.exe, x64)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.8/DEFT.Setup.0.2.8.exe)
+- [Download for Mac (Apple Silicon)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.8/DEFT-0.2.8-arm64.dmg)
+- [Download for Mac (Intel)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.8/DEFT-0.2.8-x64.dmg)
 - [All releases](https://github.com/lifeimitateslife/deft/releases)
 <!-- downloads:end -->
 
-[![DEFT development preview, captured at 3840 by 2160 pixels](docs/deft-windows.png)](docs/deft-windows.png)
+[![DEFT interface, captured at 3840 by 2160 pixels](docs/deft-windows.png)](docs/deft-windows.png)
 
-**4K development preview:** these are native-resolution captures of the packaged app's interface, not upscaled mockups. The menu, tab motion and title-bar changes below are for the next build; the published downloads above are still 0.2.7. Renderer captures omit native OS caption buttons and do not demonstrate desktop blur.
+**4K screenshots:** these are native-resolution captures of the packaged app's interface, not upscaled mockups. The menu, tab motion and title-bar changes below are included in 0.2.8. Renderer captures omit native OS caption buttons and do not demonstrate desktop blur.
 
 <details>
 <summary>More 4K screenshots: main menu and Preferences</summary>
@@ -50,7 +50,7 @@ Install 0.2.5 or later manually once to receive future notices. Older versions d
 
 On Windows, the installer defaults to `C:\Program Files\DEFT`; choose Browse to use a custom folder. Installation requires administrator approval. Open the Mac disk image and drag DEFT into Applications. The application includes its runtime; Node.js, Git and developer tools are only needed to build from source.
 
-The [0.2.7 prerelease](https://github.com/lifeimitateslife/deft/releases/tag/v0.2.7) adds an adjustable background blur slider on Windows and Mac. It also includes tab reordering, a visible Recent button and update notices from earlier releases. It includes checksums, a claim audit, and verification evidence. The Mac signature and transparency fixes from 0.2.4 are included. Try copies of your own files before choosing DEFT as your everyday default.
+The [0.2.8 prerelease](https://github.com/lifeimitateslife/deft/releases/tag/v0.2.8) adds animated tab reordering, menu-only Recent files and an optional translucent title bar on Windows and Mac. Independent adjustable background blur, update notices and earlier Mac signature/transparency fixes remain included. The release includes checksums, a claim audit and verification evidence. Try copies of your own files before choosing DEFT as your everyday default.
 
 DEFT is free and open source. Windows builds have no verified publisher and may show an unknown-publisher warning. Mac builds use a free ad-hoc signature and are not Apple-notarized, so macOS may block the first launch. Download from this repository and verify the release checksum.
 
