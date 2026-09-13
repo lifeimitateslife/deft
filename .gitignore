@@ -4,3 +4,4 @@ release/
 .scratch/
 test-results/
 *.log
+desktop/native/

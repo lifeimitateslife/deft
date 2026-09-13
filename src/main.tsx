@@ -98,7 +98,11 @@ function App() {
     return window.deft.onAction((action: string) => {
       if (action === "material-updated") void refreshMaterial();
     });
-  }, [settings.material, settings.backgroundBlur]);
+  }, [
+    settings.material,
+    settings.backgroundBlur,
+    settings.backgroundBlurStrength,
+  ]);
   const custom = settings.appearance === "custom" ? settings.custom : undefined;
   const theme = {
     ...(custom

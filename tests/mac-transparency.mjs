@@ -88,9 +88,10 @@ try {
       .selectOption(appearance);
     await page.getByLabel("Material", { exact: true }).selectOption(material);
     if (material === "glass") {
-      await page
-        .getByLabel("Background blur", { exact: true })
-        .setChecked(blur);
+      const control = page.getByLabel("Background blur", { exact: true });
+      if ((await control.getAttribute("type")) === "range")
+        await control.fill(blur ? "40" : "0");
+      else await control.setChecked(blur);
       await page
         .getByLabel("Background opacity", { exact: true })
         .fill(String(opacity));

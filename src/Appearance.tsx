@@ -18,7 +18,12 @@ export function Appearance({
   settings: Settings;
   visible: boolean;
   configure: (value: Partial<Settings>) => Promise<void>;
-  material: { enabled: boolean; reason: string; clearSupported?: boolean };
+  material: {
+    enabled: boolean;
+    reason: string;
+    clearSupported?: boolean;
+    blurStrengthSupported?: boolean;
+  };
 }) {
   const [original] = useState(() => ({
     ...settings,
@@ -161,23 +166,63 @@ export function Appearance({
           Reset
         </button>
       </div>
-      <label>
-        Background blur
-        <input
-          type="checkbox"
-          checked={
-            !material.clearSupported || settings.backgroundBlur !== false
-          }
-          disabled={
-            settings.material === "solid" ||
-            !material.enabled ||
-            !material.clearSupported
-          }
-          onChange={(event) =>
-            void configure({ backgroundBlur: event.target.checked })
-          }
-        />
-      </label>
+      {material.blurStrengthSupported ? (
+        <>
+          <label htmlFor="background-blur">
+            Background blur{" "}
+            <output htmlFor="background-blur">
+              {settings.backgroundBlurStrength ?? 40}%
+            </output>
+          </label>
+          <div className="slider-reset">
+            <input
+              id="background-blur"
+              aria-label="Background blur"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={settings.backgroundBlurStrength ?? 40}
+              aria-valuetext={`${settings.backgroundBlurStrength ?? 40}% blur strength`}
+              disabled={settings.material === "solid" || !material.enabled}
+              onChange={(event) =>
+                void configure({
+                  backgroundBlurStrength: Number(event.target.value),
+                })
+              }
+            />
+            <button
+              aria-label="Reset background blur"
+              disabled={settings.material === "solid" || !material.enabled}
+              onClick={() =>
+                void configure({
+                  backgroundBlurStrength: defaults.backgroundBlurStrength,
+                })
+              }
+            >
+              Reset
+            </button>
+          </div>
+        </>
+      ) : (
+        <label>
+          Background blur
+          <input
+            type="checkbox"
+            checked={
+              !material.clearSupported || settings.backgroundBlur !== false
+            }
+            disabled={
+              settings.material === "solid" ||
+              !material.enabled ||
+              !material.clearSupported
+            }
+            onChange={(event) =>
+              void configure({ backgroundBlur: event.target.checked })
+            }
+          />
+        </label>
+      )}
       <p className="default-hint">
         Default: {defaults.glassOpacity}%. Lower values show more background
         through the window. Text stays opaque.

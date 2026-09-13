@@ -19,6 +19,7 @@ for (const test of [
   "tests/clipboard.mjs",
   "tests/update-notice.mjs",
   "tests/tabs-recents.mjs",
+  ...(process.platform === "darwin" ? ["tests/mac-blur-ui.mjs"] : []),
 ]) {
   const result = spawnSync(process.execPath, [test], {
     stdio: "inherit",

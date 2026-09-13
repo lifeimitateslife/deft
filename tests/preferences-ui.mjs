@@ -66,7 +66,9 @@ try {
       true,
     );
   }
-  assert.equal(await blur.isChecked(), true);
+  const strengthSlider = (await blur.getAttribute("type")) === "range";
+  if (strengthSlider) assert.equal(await blur.inputValue(), "40");
+  else assert.equal(await blur.isChecked(), true);
   const materialSupport = await page.evaluate(() =>
     window.deft.material("glass"),
   );
@@ -78,7 +80,8 @@ try {
       materialSupport.enabled &&
       materialSupport.clearSupported)
   ) {
-    await blur.uncheck();
+    if (strengthSlider) await blur.fill("0");
+    else await blur.uncheck();
     await page.evaluate(() => window.deft.settings({}));
     assert.equal(
       await page.getByLabel("Background opacity", { exact: true }).inputValue(),
@@ -91,7 +94,8 @@ try {
     await page.getByLabel("Material", { exact: true }).selectOption("solid");
     assert.equal(await blur.isDisabled(), true);
     await page.getByLabel("Material", { exact: true }).selectOption("glass");
-    assert.equal(await blur.isChecked(), false);
+    if (strengthSlider) assert.equal(await blur.inputValue(), "0");
+    else assert.equal(await blur.isChecked(), false);
   } else {
     assert.equal(await blur.isDisabled(), true);
   }

@@ -1,4 +1,5 @@
 import type { Settings, CustomTheme } from "./types";
+import { blurSettings } from "../desktop/blur-settings.cjs";
 import builtIn from "../desktop/defaults.json";
 export const defaults = builtIn as Settings;
 export const light: CustomTheme = {
@@ -18,6 +19,7 @@ export const appearanceDefaults: Partial<Settings> = {
   material: defaults.material,
   glassOpacity: defaults.glassOpacity,
   backgroundBlur: defaults.backgroundBlur,
+  backgroundBlurStrength: defaults.backgroundBlurStrength,
   custom: undefined,
   fontFamily: defaults.fontFamily,
   codeFontFamily: defaults.codeFontFamily,
@@ -28,6 +30,7 @@ export function preferences(saved: Partial<Settings> = {}): Settings {
     ...defaults,
     recent: [],
     ...saved,
+    ...blurSettings(saved),
   };
 }
 export function contrast(a: string, b: string) {

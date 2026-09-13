@@ -3,6 +3,7 @@ import { DocumentEditor } from "./editor";
 import { renderMarkdown, exportDocument } from "./markdown";
 import type { Document, Settings, Kind, Mode } from "./types";
 import type { Format } from "./formatting";
+import { blurSettings } from "../desktop/blur-settings.cjs";
 import { preferences } from "./preferences";
 import { shortcutFor } from "../desktop/shortcuts.cjs";
 const defaults = preferences();
@@ -198,7 +199,11 @@ export function useWorkbench() {
     });
   }
   async function configure(value: Partial<Settings>) {
-    const next = { ...latest.current.settings, ...value };
+    const next = {
+      ...latest.current.settings,
+      ...value,
+      ...blurSettings(latest.current.settings, value),
+    };
     setSettings(next);
     latest.current.settings = next;
     for (const tab of latest.current.tabs) tab.configure(next);
