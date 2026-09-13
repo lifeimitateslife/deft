@@ -865,6 +865,8 @@ select:focus-visible {
   border-bottom: 1px solid var(--border);
 }
 .navigation .tabs {
+  overflow-y: hidden;
+  scrollbar-width: none;
   flex: 1;
   min-width: 0;
   min-height: 35px;
