@@ -7,11 +7,11 @@ By **Life Imitates Life**
 A focused text and Markdown editor for Windows and macOS. Open a file and start writing, without an account, vault, server or subscription.
 
 <!-- downloads:start -->
-**0.2.6 prerelease**
+**0.2.7 prerelease**
 
-- [Download for Windows (.exe, x64)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.6/DEFT.Setup.0.2.6.exe)
-- [Download for Mac (Apple Silicon)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.6/DEFT-0.2.6-arm64.dmg)
-- [Download for Mac (Intel)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.6/DEFT-0.2.6-x64.dmg)
+- [Download for Windows (.exe, x64)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.7/DEFT.Setup.0.2.7.exe)
+- [Download for Mac (Apple Silicon)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.7/DEFT-0.2.7-arm64.dmg)
+- [Download for Mac (Intel)](https://github.com/lifeimitateslife/deft/releases/download/v0.2.7/DEFT-0.2.7-x64.dmg)
 - [All releases](https://github.com/lifeimitateslife/deft/releases)
 <!-- downloads:end -->
 
@@ -35,7 +35,7 @@ Install 0.2.5 or later manually once to receive future notices. Older versions d
 
 On Windows, the installer defaults to `C:\Program Files\DEFT`; choose Browse to use a custom folder. Installation requires administrator approval. Open the Mac disk image and drag DEFT into Applications. The application includes its runtime; Node.js, Git and developer tools are only needed to build from source.
 
-The [0.2.6 prerelease](https://github.com/lifeimitateslife/deft/releases/tag/v0.2.6) adds tab reordering and a visible Recent button on Windows and Mac. It includes checksums, a claim audit, and verification evidence. The Mac signature and transparency fixes from 0.2.4 are included. Try copies of your own files before choosing DEFT as your everyday default.
+The [0.2.7 prerelease](https://github.com/lifeimitateslife/deft/releases/tag/v0.2.7) adds an adjustable background blur slider on Windows and Mac. It also includes tab reordering, a visible Recent button and update notices from earlier releases. It includes checksums, a claim audit, and verification evidence. The Mac signature and transparency fixes from 0.2.4 are included. Try copies of your own files before choosing DEFT as your everyday default.
 
 DEFT is free and open source. Windows builds have no verified publisher and may show an unknown-publisher warning. Mac builds use a free ad-hoc signature and are not Apple-notarized, so macOS may block the first launch. Download from this repository and verify the release checksum.
 
@@ -105,7 +105,7 @@ Live view reveals source for editing tables and math. Some Markdown constructs r
 
 Clear translucency and adjustable background blur are available on macOS and Windows 11 22H2 and later. Background blur runs from 0 to 100, with a default of 40. Zero is clear. Background opacity independently changes the background fill while text and controls stay opaque. Mac blur uses a private system API; Windows blur uses Windows Composition. If a native backend is unavailable or reports a failure, Preferences falls back to a system blur toggle. Future OS or graphics changes may affect native blur support. Very low background opacity can reduce readability over busy windows. System accessibility preferences can require a solid background.
 
-External changes are checked every 2.5 seconds. A writer that changes a file in the short interval between the final check and filesystem replacement cannot be completely excluded. Hard links, extended attributes, and custom Windows ACL preservation are not guaranteed. Deleted or renamed files require reopening or Save As. Windows registration and the 0.2.3 Program Files upgrade were tested; interactive default selection and browser-quarantined Mac first-launch approval remain unverified. The 0.2.6 packaged app passed automated tests on Windows and both Mac architectures; see the [0.2.6 claim audit](https://github.com/lifeimitateslife/deft/releases/download/v0.2.6/CLAIM-AUDIT.md) and [earlier verification](docs/verification.md).
+External changes are checked every 2.5 seconds. A writer that changes a file in the short interval between the final check and filesystem replacement cannot be completely excluded. Hard links, extended attributes, and custom Windows ACL preservation are not guaranteed. Deleted or renamed files require reopening or Save As. Windows registration and the 0.2.3 Program Files upgrade were tested; interactive default selection and browser-quarantined Mac first-launch approval remain unverified. The 0.2.7 packaged app passed automated tests on Windows and both Mac architectures; see the [0.2.7 claim audit](https://github.com/lifeimitateslife/deft/releases/download/v0.2.7/CLAIM-AUDIT.md) and [earlier verification](docs/verification.md).
 
 Settings and recovery live in `%APPDATA%/deft` on Windows and `~/Library/Application Support/deft` on macOS. Uninstalling does not delete documents. Preferences lets you turn off restoration of the previous session. Uninstall through Windows Settings > Apps > Installed apps > DEFT > Uninstall, or remove DEFT from Applications on macOS. Settings and recovery are preserved when uninstalling.
 
