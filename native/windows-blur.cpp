@@ -18,6 +18,9 @@ using namespace winrt;
 using namespace Windows::UI::Composition;
 using namespace Windows::Graphics::Effects;
 using namespace Windows::Foundation;
+using ABI::Windows::Graphics::Effects::IGraphicsEffectD2D1Interop;
+using ABI::Windows::Graphics::Effects::GRAPHICS_EFFECT_PROPERTY_MAPPING;
+using ABI::Windows::Graphics::Effects::GRAPHICS_EFFECT_PROPERTY_MAPPING_DIRECT;
 
 struct Gaussian : implements<Gaussian, IGraphicsEffect, IGraphicsEffectSource,
                               IGraphicsEffectD2D1Interop> {
@@ -47,7 +50,7 @@ struct Gaussian : implements<Gaussian, IGraphicsEffect, IGraphicsEffectSource,
     if (!value) return E_POINTER;
     *value = nullptr;
     try {
-      IInspectable property{nullptr};
+      Windows::Foundation::IInspectable property{nullptr};
       if (index == 0) property = PropertyValue::CreateSingle(0.f);
       else if (index == 1) property = PropertyValue::CreateUInt32(D2D1_GAUSSIANBLUR_OPTIMIZATION_BALANCED);
       else if (index == 2) property = PropertyValue::CreateUInt32(D2D1_BORDER_MODE_HARD);
@@ -82,9 +85,9 @@ struct Backdrop {
         reinterpret_cast<ABI::Windows::System::IDispatcherQueueController**>(put_abi(queue))));
     }
     compositor = Compositor();
-    compositor.as<ABI::Windows::UI::Composition::Desktop::ICompositorDesktopInterop>()
+    check_hresult(compositor.as<ABI::Windows::UI::Composition::Desktop::ICompositorDesktopInterop>()
       ->CreateDesktopWindowTarget(hwnd, false,
-        reinterpret_cast<ABI::Windows::UI::Composition::Desktop::IDesktopWindowTarget**>(put_abi(target)));
+        reinterpret_cast<ABI::Windows::UI::Composition::Desktop::IDesktopWindowTarget**>(put_abi(target))));
     if (!target) throw hresult_error(E_FAIL, L"Desktop composition target unavailable");
     visual = compositor.CreateSpriteVisual();
     visual.RelativeSizeAdjustment({1.f, 1.f});
