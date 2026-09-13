@@ -20,6 +20,7 @@ for (const test of [
   "tests/update-notice.mjs",
   "tests/tabs-recents.mjs",
   "tests/titlebar-ui.mjs",
+  "tests/tab-motion.mjs",
   ...(process.platform === "darwin" ? ["tests/mac-blur-ui.mjs"] : []),
   ...(process.platform === "win32" ? ["tests/windows-blur-ui.mjs"] : []),
 ]) {

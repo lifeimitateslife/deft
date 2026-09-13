@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { DocumentEditor } from "./editor";
 
 type Drag = {
@@ -65,6 +65,11 @@ export function TabStrip({
     before.current = null;
   }, [tabs, preview]);
   useLayoutEffect(() => () => cancelAnimationFrame(frame.current), []);
+  useEffect(() => {
+    const cancel = () => finish(false);
+    window.addEventListener("blur", cancel);
+    return () => window.removeEventListener("blur", cancel);
+  }, [tabs]);
   function move(id: string, destination: string) {
     if (id === destination) return;
     const index = tabs.findIndex((tab) => tab.doc.id === destination);

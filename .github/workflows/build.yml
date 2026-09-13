@@ -92,7 +92,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: deft-${{ matrix.platform }}-tabs-recents
-          path: .scratch/tabs-recents-*/*.png
+          path: |
+            .scratch/tabs-recents-*/*.png
+            .scratch/tab-motion-*/*.png
           if-no-files-found: ignore
           include-hidden-files: true
       - name: Save update notice evidence
