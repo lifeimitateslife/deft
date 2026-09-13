@@ -76,6 +76,16 @@ export function useWorkbench() {
     setTabs(next);
     return next;
   }
+  function reorder(id: string, target: string) {
+    if (closing.current) return;
+    const next = [...latest.current.tabs];
+    const from = next.findIndex((tab) => tab.doc.id === id);
+    const to = next.findIndex((tab) => tab.doc.id === target);
+    if (from < 0 || to < 0 || from === to) return;
+    next.splice(to, 0, next.splice(from, 1)[0]);
+    latest.current.tabs = next;
+    setTabs(next);
+  }
   async function createDoc(kind: Kind) {
     add([await window.deft.create(kind)]);
   }
@@ -576,6 +586,7 @@ export function useWorkbench() {
     unique,
     headings,
     setActive,
+    reorder,
     update,
     report,
   };
