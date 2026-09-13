@@ -230,6 +230,32 @@ try {
     win.focus();
   });
   await page.screenshot({ path: path.join(root, "restored.png") });
+  await app.evaluate(async ({ BrowserWindow }) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    await new Promise((resolve) => {
+      win.once("maximize", resolve);
+      win.maximize();
+    });
+    await new Promise((resolve) => {
+      win.once("unmaximize", resolve);
+      win.unmaximize();
+    });
+    await new Promise((resolve) => {
+      win.once("enter-full-screen", resolve);
+      win.setFullScreen(true);
+    });
+  });
+  await page.waitForFunction(() => document.querySelector(".title-bar").hidden);
+  await app.evaluate(async ({ BrowserWindow }) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    await new Promise((resolve) => {
+      win.once("leave-full-screen", resolve);
+      win.setFullScreen(false);
+    });
+  });
+  await page.waitForFunction(
+    () => !document.querySelector(".title-bar").hidden,
+  );
   await page.evaluate(() => window.deft.settings());
   await app.evaluate(({ app }) => app.exit(0));
   app = null;
