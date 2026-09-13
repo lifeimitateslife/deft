@@ -119,6 +119,11 @@ try {
     console.log(label, contrast);
     return contrast;
   }
+  assert.equal(
+    await app.evaluate(() => globalThis.blurTest.win.hasShadow()),
+    true,
+    "Keep the normal window shadow",
+  );
   const levels = [];
   for (const strength of [0, 10, 30, 60, 100])
     levels.push(await sample(strength));

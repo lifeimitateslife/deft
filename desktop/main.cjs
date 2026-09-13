@@ -290,6 +290,8 @@ function material(value) {
         ? "#01000000"
         : "#00000000",
   );
+  // Transparent-window shadow caches can otherwise darken the clear backdrop.
+  if (process.platform === "darwin") win.invalidateShadow();
   return {
     enabled: !solid,
     supported,
