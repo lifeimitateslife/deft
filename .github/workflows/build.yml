@@ -14,10 +14,15 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - run: npx electron-builder --mac --arm64 --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          CSC_FOR_PULL_REQUEST: "true"
       - run: npm install --prefix .scratch/mac-capture --no-save koffi@3.2.1
       - run: defaults write com.apple.universalaccess reduceTransparency -bool false
       - run: node tests/mac-transparency.mjs
         env:
+          DEFT_EXECUTABLE: ${{ github.workspace }}/release/mac-arm64/DEFT.app/Contents/MacOS/DEFT
           DEFT_KOFFI_MODULE: ${{ github.workspace }}/.scratch/mac-capture/node_modules/koffi
       - uses: actions/upload-artifact@v4
         if: always()

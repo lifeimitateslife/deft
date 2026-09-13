@@ -159,6 +159,17 @@ try {
       JSON.stringify(results, null, 2),
     );
     console.log(`${label}: ${delta.toFixed(2)}`);
+    if ((label.endsWith("clear-0") || label === "clear-before-resize") && delta < 220) {
+      console.log("[DEBUG-arm] settings", await page.evaluate(() => window.deft.settings()));
+      await page.waitForTimeout(2000);
+      await response("probe-wait");
+      await app.evaluate(() => globalThis.deftTestWindow.invalidateShadow());
+      await response("probe-invalidate");
+      await app.evaluate(() => globalThis.deftTestWindow.setHasShadow(false));
+      await response("probe-no-shadow");
+      await app.evaluate(() => { globalThis.deftTestWindow.setHasShadow(true); globalThis.deftTestWindow.invalidateShadow(); });
+      await response("probe-restore-shadow");
+    }
     return delta;
   }
   for (const appearance of ["light", "dark"]) {
