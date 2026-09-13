@@ -16,6 +16,7 @@ const applyMacBlur =
   process.platform === "darwin" ? require("./mac-blur.cjs") : null;
 const applyWindowsBlur =
   process.platform === "win32" ? require("./windows-blur.cjs") : null;
+const refreshMacShadow = require("./mac-shadow.cjs");
 const defaults = require("./defaults.json");
 const { shortcutFor } = require("./shortcuts.cjs");
 const updates = require("./updates.cjs").createUpdateChecker({
@@ -297,7 +298,7 @@ function material(value) {
         : "#00000000",
   );
   // Transparent-window shadow caches can otherwise darken the clear backdrop.
-  if (process.platform === "darwin") win.invalidateShadow();
+  if (process.platform === "darwin") refreshMacShadow(win);
   return {
     enabled: !solid,
     supported,
@@ -606,6 +607,9 @@ if (locked)
         return settings;
       });
       register("material", material);
+      register("refreshShadow", () => {
+        if (process.platform === "darwin") refreshMacShadow(win);
+      });
       register("reveal", (id) => {
         const doc = getDoc(id);
         if (doc.path) shell.showItemInFolder(doc.path);

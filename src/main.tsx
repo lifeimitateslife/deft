@@ -103,6 +103,11 @@ function App() {
     settings.backgroundBlur,
     settings.backgroundBlurStrength,
   ]);
+  useEffect(() => {
+    // Closing Preferences also changes the transparent window's shadow shape.
+    if (window.deft.platform === "darwin")
+      void window.deft.refreshShadow().catch(report);
+  }, [panel, settings]);
   const custom = settings.appearance === "custom" ? settings.custom : undefined;
   const theme = {
     ...(custom
