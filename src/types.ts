@@ -36,6 +36,7 @@ export interface Settings {
   custom?: CustomTheme;
   glassOpacity?: number;
   backgroundBlur?: boolean;
+  backgroundBlurStrength?: number;
   fontFamily?: string;
   codeFontFamily?: string;
   recent: string[];

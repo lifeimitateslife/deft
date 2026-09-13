@@ -22,6 +22,7 @@ const commands = [
   "pdf",
   "confirm",
   "material",
+  "refreshShadow",
   "nativeCommand",
 ];
 const bridge = Object.fromEntries(

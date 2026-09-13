@@ -11,6 +11,12 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { DocumentStore, safeWrite } = require("./storage.cjs");
+const { blurSettings } = require("./blur-settings.cjs");
+const applyMacBlur =
+  process.platform === "darwin" ? require("./mac-blur.cjs") : null;
+const applyWindowsBlur =
+  process.platform === "win32" ? require("./windows-blur.cjs") : null;
+const refreshMacShadow = require("./mac-shadow.cjs");
 const defaults = require("./defaults.json");
 const { shortcutFor } = require("./shortcuts.cjs");
 const updates = require("./updates.cjs").createUpdateChecker({
@@ -266,35 +272,53 @@ function material(value) {
   const clearSupported =
     process.platform === "darwin" ||
     (process.platform === "win32" && supported);
-  const blur = settings.backgroundBlur !== false || !clearSupported;
-  if (process.platform === "win32" && supported)
-    win.setBackgroundMaterial(solid || !blur ? "none" : "acrylic");
-  if (process.platform === "darwin")
-    win.setVibrancy(solid || !blur ? null : "hud");
+  const strength = blurSettings(settings).backgroundBlurStrength;
+  const blur = strength > 0 || !clearSupported;
+  let blurStrengthSupported = false;
+  if (process.platform === "win32" && supported) {
+    win.setBackgroundMaterial("none");
+    blurStrengthSupported = applyWindowsBlur(win, solid ? 0 : strength);
+    if (!blurStrengthSupported && !solid && blur)
+      win.setBackgroundMaterial("acrylic");
+  }
+  if (process.platform === "darwin") {
+    win.setVibrancy(null);
+    blurStrengthSupported = applyMacBlur(win, solid ? 0 : strength);
+    if (!blurStrengthSupported && !solid && blur) win.setVibrancy("hud");
+  }
+  // WindowServer skips blur on fully transparent pixels. A fixed 1/255
+  // background alpha enables the effect without fading foreground content.
   win.setBackgroundColor(
     solid
       ? nativeTheme.shouldUseDarkColors
         ? "#101113"
         : "#ffffff"
-      : "#00000000",
+      : process.platform === "darwin" && blurStrengthSupported && blur
+        ? "#01000000"
+        : "#00000000",
   );
+  // Transparent-window shadow caches can otherwise darken the clear backdrop.
+  if (process.platform === "darwin") refreshMacShadow(win);
   return {
     enabled: !solid,
     supported,
     clearSupported,
+    blurStrengthSupported,
     reason: reduced
       ? "System accessibility settings require a solid background."
       : !supported
         ? "Glass requires Windows 11 22H2 or macOS. Solid is used on this system."
         : process.platform === "darwin"
-          ? blur
-            ? "Background blur uses macOS vibrancy. Turn it off for clear translucency. Text and controls stay opaque."
-            : "Clear translucency uses your background opacity without macOS blur. Text and controls stay opaque."
-          : !clearSupported
-            ? "Glass uses the system backdrop. Clear translucency is currently available on Windows 11 only."
-            : blur
-              ? "Background blur uses Windows Acrylic. Its strength and inactive-window appearance are controlled by Windows."
-              : "Clear translucency uses your background opacity without Windows blur. Text and controls stay opaque.",
+          ? blurStrengthSupported
+            ? "Adjust background blur independently of opacity. Zero gives clear translucency. Text and controls stay sharp."
+            : "Adjustable blur is unavailable on this Mac. Use the on/off control for standard macOS blur."
+          : blurStrengthSupported
+            ? "Adjust background blur independently of opacity. Zero gives clear translucency. Text and controls stay sharp."
+            : !clearSupported
+              ? "Glass uses the system backdrop. Clear translucency is currently available on Windows 11 only."
+              : blur
+                ? "Background blur uses Windows Acrylic. Its strength and inactive-window appearance are controlled by Windows."
+                : "Clear translucency uses your background opacity without Windows blur. Text and controls stay opaque.",
   };
 }
 function register(name, handler) {
@@ -577,12 +601,15 @@ if (locked)
       );
       register("settings", async (value) => {
         if (value === undefined) return settings;
-        settings = { ...settings, ...value };
+        settings = { ...settings, ...value, ...blurSettings(settings, value) };
         await saveSettings();
         material(settings.material);
         return settings;
       });
       register("material", material);
+      register("refreshShadow", () => {
+        if (process.platform === "darwin") refreshMacShadow(win);
+      });
       register("reveal", (id) => {
         const doc = getDoc(id);
         if (doc.path) shell.showItemInFolder(doc.path);

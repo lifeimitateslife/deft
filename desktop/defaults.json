@@ -11,5 +11,6 @@
   "reducedMotion": false,
   "autosave": false,
   "restoreSession": true,
-  "recent": []
+  "recent": [],
+  "backgroundBlurStrength": 40
 }

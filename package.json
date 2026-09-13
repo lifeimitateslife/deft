@@ -1,6 +1,6 @@
 {
   "name": "deft",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "A fast, focused text and Markdown editor.",
   "author": {
     "name": "Life Imitates Life"
@@ -10,7 +10,7 @@
   "main": "desktop/main.cjs",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "node scripts/build-mac-blur.cjs && node scripts/build-windows-blur.cjs && tsc --noEmit && vite build",
     "start": "electron .",
     "test": "node --import tsx --test tests/*.test.cjs tests/*.test.ts",
     "test:ui": "node tests/native.mjs",
@@ -113,7 +113,10 @@
         "to": "document.ico"
       }
     ],
-    "copyright": "Copyright © 2026 Life Imitates Life"
+    "copyright": "Copyright \u00a9 2026 Life Imitates Life",
+    "asarUnpack": [
+      "desktop/native/*.node"
+    ]
   },
   "dependencies": {
     "iconv-lite": "^0.7.3"
@@ -138,6 +141,7 @@
     "markdown-it": "^15.0.1",
     "markdown-it-task-lists": "^2.1.1",
     "markdown-it-texmath": "^1.0.0",
+    "node-gyp": "12.4.0",
     "playwright": "^1.63.0",
     "png-to-ico": "^3.0.2",
     "prettier": "^3.9.6",

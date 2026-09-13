@@ -39,6 +39,12 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - name: Save Windows native candidate
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-blur-native-candidate
+          path: desktop/native/windows-blur.node
       - run: npm run test:ui
       - run: npm run test:session
       - run: npm run test:handoff
@@ -63,6 +69,22 @@ jobs:
         if: runner.os == 'macOS'
         run: defaults write com.apple.universalaccess reduceTransparency -bool false
       - run: node scripts/package-test.cjs
+      - name: Verify Windows background compositing
+        if: runner.os == 'Windows'
+        run: node tests/windows-blur-strength.mjs
+        env:
+          DEFT_EXECUTABLE: ${{ github.workspace }}/release/win-unpacked/DEFT.exe
+      - name: Save Windows blur evidence
+        if: runner.os == 'Windows' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-blur-verification
+          path: |
+            .scratch/windows-blur-strength-*/results.json
+            .scratch/windows-blur-strength-*/*.png
+            .scratch/windows-blur-ui-*/*.png
+          if-no-files-found: ignore
+          include-hidden-files: true
       - name: Save tabs and recent files evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -88,6 +110,7 @@ jobs:
         run: |
           npm install --prefix .scratch/mac-capture --no-save koffi@3.2.1
           node tests/mac-transparency.mjs
+          node tests/mac-blur-strength.mjs
       - name: Save Mac compositor evidence
         if: runner.os == 'macOS' && always()
         uses: actions/upload-artifact@v4
@@ -96,6 +119,9 @@ jobs:
           path: |
             .scratch/mac-transparency-*/results.json
             .scratch/mac-transparency-*/*.png
+            .scratch/mac-blur-strength-*/results.json
+            .scratch/mac-blur-strength-*/*.png
+            .scratch/mac-blur-ui-*/*.png
           if-no-files-found: ignore
           include-hidden-files: true
       - name: Verify final Mac disk image
