@@ -165,6 +165,8 @@ try {
   await response("probe-blur");
   await configure("light", "glass", false, 0);
   await response("probe-clear");
+  await app.evaluate(() => globalThis.deftTestWindow.invalidateShadow());
+  await response("probe-invalidate-only");
   await app.evaluate(() => globalThis.deftTestWindow.setHasShadow(false));
   await response("probe-no-shadow");
   await app.evaluate(() => { globalThis.deftTestWindow.setHasShadow(true); globalThis.deftTestWindow.invalidateShadow(); });
