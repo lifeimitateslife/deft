@@ -1,5 +1,15 @@
-import { useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { DocumentEditor } from "./editor";
+
+type Drag = {
+  id: string;
+  pointer: number;
+  startX: number;
+  x: number;
+  scroll: number;
+  started: boolean;
+  destination: string;
+};
 
 export function TabStrip({
   tabs,
@@ -14,9 +24,52 @@ export function TabStrip({
   close: (tab: DocumentEditor) => unknown;
   reorder: (id: string, target: string) => void;
 }) {
-  const dragged = useRef<string | null>(null);
-  const [target, setTarget] = useState<string | null>(null);
+  const root = useRef<HTMLElement>(null);
+  const drag = useRef<Drag | null>(null);
+  const frame = useRef(0);
+  const before = useRef<Map<string, number> | null>(null);
+  const suppressClick = useRef(false);
+  const [preview, setPreview] = useState<Record<string, number>>({});
   const [announcement, setAnnouncement] = useState("");
+  const nodes = () => [
+    ...(root.current?.querySelectorAll<HTMLElement>(".tab") || []),
+  ];
+  const reduced = () =>
+    matchMedia("(prefers-reduced-motion: reduce)").matches ||
+    root.current?.closest("main")?.getAttribute("data-reduced-motion") ===
+      "true";
+  function capture() {
+    before.current = new Map(
+      nodes().map((node) => [
+        node.dataset.id!,
+        node.getBoundingClientRect().left,
+      ]),
+    );
+  }
+  useLayoutEffect(() => {
+    if (!before.current) return;
+    for (const node of nodes()) {
+      const left = before.current.get(node.dataset.id!);
+      const delta =
+        left === undefined ? 0 : left - node.getBoundingClientRect().left;
+      node.getAnimations().forEach((animation) => animation.cancel());
+      if (delta && !reduced())
+        node.animate(
+          [
+            { transform: `translateX(${delta}px)` },
+            { transform: "translateX(0)" },
+          ],
+          { duration: 180, easing: "cubic-bezier(.2,.8,.2,1)" },
+        );
+    }
+    before.current = null;
+  }, [tabs, preview]);
+  useLayoutEffect(() => () => cancelAnimationFrame(frame.current), []);
+  useEffect(() => {
+    const cancel = () => finish(false);
+    window.addEventListener("blur", cancel);
+    return () => window.removeEventListener("blur", cancel);
+  }, [tabs]);
   function move(id: string, destination: string) {
     if (id === destination) return;
     const index = tabs.findIndex((tab) => tab.doc.id === destination);
@@ -27,61 +80,126 @@ export function TabStrip({
       `${tab.doc.name} moved to position ${index + 1} of ${tabs.length}.`,
     );
   }
+  function tick() {
+    const state = drag.current,
+      nav = root.current;
+    if (!state?.started || !nav) return;
+    const bounds = nav.getBoundingClientRect();
+    if (state.x < bounds.left + 40)
+      nav.scrollLeft -= Math.min(16, (bounds.left + 40 - state.x) / 3);
+    else if (state.x > bounds.right - 40)
+      nav.scrollLeft += Math.min(16, (state.x - bounds.right + 40) / 3);
+    const elements = nodes();
+    const source = elements.findIndex((node) => node.dataset.id === state.id);
+    if (source < 0) {
+      finish(false);
+      return;
+    }
+    const element = elements[source];
+    const delta = state.x - state.startX + nav.scrollLeft - state.scroll;
+    const center = element.offsetLeft + element.offsetWidth / 2 + delta;
+    let target = source;
+    for (let i = 0; i < elements.length; i++) {
+      const middle = elements[i].offsetLeft + elements[i].offsetWidth / 2;
+      if (i > source && center > middle) target = i;
+      if (i < source && center < middle) {
+        target = i;
+        break;
+      }
+    }
+    state.destination = elements[target].dataset.id!;
+    const next: Record<string, number> = {};
+    const gap = parseFloat(getComputedStyle(nav).columnGap) || 0;
+    elements.forEach((node, index) => {
+      next[node.dataset.id!] =
+        index === source
+          ? delta
+          : source < index && index <= target
+            ? -(element.offsetWidth + gap)
+            : target <= index && index < source
+              ? element.offsetWidth + gap
+              : 0;
+    });
+    setPreview(next);
+    frame.current = requestAnimationFrame(tick);
+  }
+  function finish(commit: boolean) {
+    const state = drag.current;
+    if (!state) return;
+    cancelAnimationFrame(frame.current);
+    if (state.started) {
+      capture();
+      suppressClick.current = true;
+      if (commit) move(state.id, state.destination);
+    }
+    drag.current = null;
+    setPreview({});
+  }
   return (
     <>
       <nav
+        ref={root}
         className="tabs"
+        data-dragging={!!drag.current?.started}
         aria-label="Open documents"
-        onDragOver={(event) => {
-          if (!dragged.current) return;
-          event.preventDefault();
-          const bounds = event.currentTarget.getBoundingClientRect();
-          if (event.clientX < bounds.left + 30)
-            event.currentTarget.scrollLeft -= 30;
-          if (event.clientX > bounds.right - 30)
-            event.currentTarget.scrollLeft += 30;
-        }}
-        onDragLeave={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget as Node | null))
-            setTarget(null);
-        }}
       >
         {tabs.map((tab, index) => (
           <div
             key={tab.doc.id}
-            className={`tab ${tab === current ? "active" : ""} ${target === tab.doc.id ? "drop-target" : ""}`}
-            onDragOver={(event) => {
-              if (!dragged.current) return;
-              event.preventDefault();
-              event.dataTransfer.dropEffect = "move";
-              setTarget(tab.doc.id);
-            }}
-            onDrop={(event) => {
-              if (!dragged.current) return;
-              event.preventDefault();
-              event.stopPropagation();
-              move(dragged.current, tab.doc.id);
-              dragged.current = null;
-              setTarget(null);
+            data-id={tab.doc.id}
+            className={`tab ${tab === current ? "active" : ""} ${drag.current?.started && drag.current.id === tab.doc.id ? "dragging" : ""}`}
+            style={{
+              transform: preview[tab.doc.id]
+                ? `translateX(${preview[tab.doc.id]}px)`
+                : undefined,
             }}
           >
             <button
               aria-pressed={tab === current}
               title={`${tab.doc.path || "Unsaved document"}\nDrag to reorder. Alt+Left/Right moves a focused tab.`}
-              draggable
-              onDragStart={(event) => {
-                dragged.current = tab.doc.id;
-                event.dataTransfer.effectAllowed = "move";
-                event.dataTransfer.setData(
-                  "application/x-deft-tab",
-                  tab.doc.id,
+              onPointerDown={(event) => {
+                if (event.button !== 0 || drag.current) return;
+                suppressClick.current = false;
+                nodes().forEach((node) =>
+                  node
+                    .getAnimations()
+                    .forEach((animation) => animation.cancel()),
                 );
+                drag.current = {
+                  id: tab.doc.id,
+                  pointer: event.pointerId,
+                  startX: event.clientX,
+                  x: event.clientX,
+                  scroll: root.current!.scrollLeft,
+                  started: false,
+                  destination: tab.doc.id,
+                };
+                event.currentTarget.setPointerCapture(event.pointerId);
               }}
-              onDragEnd={() => {
-                dragged.current = null;
-                setTarget(null);
+              onPointerMove={(event) => {
+                const state = drag.current;
+                if (!state || state.pointer !== event.pointerId) return;
+                state.x = event.clientX;
+                if (!state.started && Math.abs(state.x - state.startX) >= 5) {
+                  state.started = true;
+                  tick();
+                }
+              }}
+              onPointerUp={(event) => {
+                if (drag.current?.pointer === event.pointerId) finish(true);
+              }}
+              onPointerCancel={(event) => {
+                if (drag.current?.pointer === event.pointerId) finish(false);
+              }}
+              onLostPointerCapture={(event) => {
+                if (drag.current?.pointer === event.pointerId) finish(false);
               }}
               onKeyDown={(event) => {
+                if (event.key === "Escape" && drag.current) {
+                  event.preventDefault();
+                  finish(false);
+                  return;
+                }
                 if (
                   !event.altKey ||
                   event.ctrlKey ||
@@ -95,6 +213,7 @@ export function TabStrip({
                 const destination =
                   tabs[index + (event.key === "ArrowLeft" ? -1 : 1)];
                 if (destination) {
+                  capture();
                   move(tab.doc.id, destination.doc.id);
                   const button = event.currentTarget;
                   requestAnimationFrame(() =>
@@ -105,7 +224,10 @@ export function TabStrip({
                   );
                 }
               }}
-              onClick={() => select(tab.doc.id)}
+              onClick={() => {
+                if (!suppressClick.current) select(tab.doc.id);
+                suppressClick.current = false;
+              }}
             >
               {tab.doc.dirty ? (
                 <span className="dirty" aria-label="Unsaved changes">

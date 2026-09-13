@@ -57,6 +57,25 @@ async function order(page) {
       buttons.map((button) => button.title.split("\n")[0]),
     );
 }
+async function dragTab(page, from, to) {
+  await page.waitForTimeout(220);
+  const source = await page.locator(".tab").nth(from).boundingBox();
+  const destination = await page.locator(".tab").nth(to).boundingBox();
+  await page.mouse.move(
+    source.x + source.width / 2,
+    source.y + source.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(
+    destination.x + destination.width / 2 + (to > from ? 15 : -15),
+    destination.y + destination.height / 2,
+    { steps: 12 },
+  );
+  await page.waitForTimeout(80);
+  assert.equal(await page.locator(".tab.dragging").count(), 1);
+  await page.mouse.up();
+  await page.waitForTimeout(220);
+}
 async function expectOrder(page, expected) {
   await page.waitForFunction(
     (expected) =>
@@ -71,8 +90,22 @@ async function expectOrder(page, expected) {
 }
 try {
   let page = await launch();
-  const recent = () =>
-    page.getByRole("button", { name: "Recent files", exact: true });
+  const recent = () => ({
+    click: async () => {
+      await page
+        .getByRole("button", { name: "Application menu", exact: true })
+        .click();
+      await page
+        .getByRole("menuitem", { name: "Recent files", exact: true })
+        .click();
+    },
+  });
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Recent files", exact: true })
+      .count(),
+    0,
+  );
   await recent().click();
   await page.getByText("No recent files", { exact: true }).waitFor();
   await page.keyboard.press("Escape");
@@ -95,10 +128,7 @@ try {
     .locator(".cm-content")
     .evaluate(() => getSelection()?.toString());
   // A real mouse drag moves a background tab without replacing the active editor.
-  await page
-    .locator(".tab > button:first-child")
-    .nth(0)
-    .dragTo(page.locator(".tab").nth(2));
+  await dragTab(page, 0, 2);
   await expectOrder(page, [second, third, first]);
   assert.equal(
     await page.locator(".cm-content").innerText(),
@@ -116,10 +146,7 @@ try {
       .evaluate(() => getSelection()?.toString()),
     selection,
   );
-  await page
-    .locator(".tab > button:first-child")
-    .nth(2)
-    .dragTo(page.locator(".tab").nth(0));
+  await dragTab(page, 2, 0);
   await expectOrder(page, [first, second, third]);
   // Keyboard movement works at boundaries and retains the focused tab.
   await page.locator(".tab > button:first-child").nth(1).focus();

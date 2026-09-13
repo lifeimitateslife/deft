@@ -15,13 +15,28 @@ A focused text and Markdown editor for Windows and macOS. Open a file and start 
 - [All releases](https://github.com/lifeimitateslife/deft/releases)
 <!-- downloads:end -->
 
-![The actual DEFT Windows application](docs/deft-windows.png)
+[![DEFT development preview, captured at 3840 by 2160 pixels](docs/deft-windows.png)](docs/deft-windows.png)
+
+**4K development preview:** these are native-resolution captures of the packaged app's interface, not upscaled mockups. The menu, tab motion and title-bar changes below are for the next build; the published downloads above are still 0.2.7. Renderer captures omit native OS caption buttons and do not demonstrate desktop blur.
+
+<details>
+<summary>More 4K screenshots: main menu and Preferences</summary>
+
+[![Recent files directly in the main menu, 3840 by 2160](docs/deft-menu-4k.png)](docs/deft-menu-4k.png)
+
+[![Preferences with the translucent title bar toggle, 3840 by 2160](docs/deft-preferences-4k.png)](docs/deft-preferences-4k.png)
+
+</details>
 
 ## Organize tabs and reopen files
 
-Drag a tab onto another tab to move it to that position on Windows or Mac. To reorder with the keyboard, focus a tab and press Alt+Left or Alt+Right. Reordering preserves the active document, edits and undo history. Tab order is restored when session restoration is enabled.
+Drag a tab to reorder it on Windows or Mac. It follows the pointer while neighboring tabs slide aside, then settles into place on release. Drag near an edge to scroll through overflow tabs, or press Escape to cancel. App and system reduced-motion settings disable the settling animations. To reorder with the keyboard, focus a tab and press Alt+Left or Alt+Right. Reordering preserves the active document, edits and undo history. Tab order is restored when session restoration is enabled.
 
-The **Recent** button beside the tabs opens recent files without closing your current documents. Folder paths distinguish files with the same name. Selecting a file that is already open switches to its existing tab. File > Recent Files remains available too.
+**Recent files** is the first entry in the three-bar application menu on both platforms. It is not on the tab strip, welcome screen or in File. Folder paths distinguish files with the same name. Selecting a file that is already open switches to its existing tab without closing other documents.
+
+## Optional translucent title bar
+
+In Preferences, enable **Translucent title bar** to let the DEFT title surface follow the same background blur and opacity as the editor. Off is the default and keeps the title surface opaque. Windows caption buttons and Mac traffic lights remain native; the title strip hides in fullscreen. Solid mode and system accessibility transparency settings override translucency without erasing the preference. Blur strength remains independent of opacity.
 
 ## Update notifications
 

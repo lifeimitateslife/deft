@@ -18,6 +18,7 @@ const applyWindowsBlur =
   process.platform === "win32" ? require("./windows-blur.cjs") : null;
 const refreshMacShadow = require("./mac-shadow.cjs");
 const defaults = require("./defaults.json");
+const { titlebarOptions, updateTitlebar } = require("./titlebar.cjs");
 const { shortcutFor } = require("./shortcuts.cjs");
 const updates = require("./updates.cjs").createUpdateChecker({
   version: app.getVersion(),
@@ -97,13 +98,6 @@ function menu() {
         label: "New tab",
         accelerator: "CmdOrCtrl+T",
         click: action("new-text"),
-      },
-      {
-        label: "Recent Files",
-        submenu: (settings.recent || []).map((file) => ({
-          label: path.basename(file),
-          click: action("recent:" + file),
-        })),
       },
       { type: "separator" },
       { label: "Save", accelerator: "CmdOrCtrl+S", click: action("save") },
@@ -261,6 +255,7 @@ function menu() {
   );
 }
 function material(value) {
+  updateTitlebar(win, settings, nativeTheme, process.platform);
   const supported =
     process.platform === "darwin" ||
     (process.platform === "win32" &&
@@ -472,11 +467,13 @@ if (locked)
           dialog.showErrorBox("Settings could not be read", e.message);
       }
       win = new BrowserWindow({
+        show: false,
         width: 1120,
         height: 800,
         minWidth: 620,
         minHeight: 420,
         title: "DEFT",
+        ...titlebarOptions(process.platform),
         backgroundColor: "#f5f6f8",
         // macOS needs a transparent native surface for blur-off to reveal the desktop.
         ...(process.platform === "darwin"
@@ -491,8 +488,25 @@ if (locked)
           webSecurity: true,
         },
       });
+      // Test windows must never flash onto the owner's primary monitor.
+      if (process.env.DEFT_TEST_SECONDARY === "1") {
+        const { screen } = require("electron");
+        const display = screen
+          .getAllDisplays()
+          .find((d) => d.id !== screen.getPrimaryDisplay().id);
+        if (!display)
+          throw new Error("Requested second monitor is unavailable");
+        win.setBounds({
+          x: display.workArea.x + 40,
+          y: display.workArea.y + 80,
+          width: Math.min(960, display.workArea.width - 80),
+          height: Math.min(800, display.workArea.height - 100),
+        });
+      }
       // Electron hides native traffic lights on transparent windows by default.
       if (process.platform === "darwin") win.setWindowButtonVisibility(true);
+      for (const event of ["enter-full-screen", "leave-full-screen"])
+        win.on(event, () => win.webContents.send("action", "window-state"));
       win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
       win.webContents.on("before-input-event", (event, input) => {
         const command = shortcutFor(input);
@@ -543,6 +557,7 @@ if (locked)
         };
       });
       register("updates", () => updates.check());
+      register("windowState", () => ({ fullscreen: win.isFullScreen() }));
       register("openUpdate", async () => {
         const url = updates.page();
         if (url) await shell.openExternal(url);
@@ -727,6 +742,8 @@ if (locked)
       if (process.platform !== "darwin") win.removeMenu();
       material(settings.material || defaults.material);
       await win.loadFile(path.join(__dirname, "../dist/index.html"));
+      // Documentation capture renders the real app without taking desktop focus.
+      if (!app.commandLine.hasSwitch("deft-capture")) win.show();
     })
     .catch((error) => {
       dialog.showErrorBox("DEFT could not start", error.message);

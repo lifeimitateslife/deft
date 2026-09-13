@@ -231,6 +231,20 @@ export function Appearance({
       </p>
       <p>{material.reason}</p>
       <label>
+        Translucent title bar
+        <input
+          type="checkbox"
+          checked={settings.translucentTitleBar === true}
+          onChange={(event) =>
+            void configure({ translucentTitleBar: event.target.checked })
+          }
+        />
+      </label>
+      <p>
+        Let the DEFT title bar follow background blur and opacity. Off keeps it
+        opaque. Solid mode and system accessibility settings keep it opaque too.
+      </p>
+      <label>
         Reduce motion
         <input
           type="checkbox"

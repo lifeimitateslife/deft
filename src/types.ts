@@ -37,6 +37,7 @@ export interface Settings {
   glassOpacity?: number;
   backgroundBlur?: boolean;
   backgroundBlurStrength?: number;
+  translucentTitleBar?: boolean;
   fontFamily?: string;
   codeFontFamily?: string;
   recent: string[];

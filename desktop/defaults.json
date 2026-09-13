@@ -3,6 +3,7 @@
   "material": "glass",
   "glassOpacity": 68,
   "backgroundBlur": true,
+  "translucentTitleBar": false,
   "fontFamily": "",
   "codeFontFamily": "",
   "fontSize": 16,
