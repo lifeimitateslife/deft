@@ -172,6 +172,8 @@ try {
     }
     return delta;
   }
+  for (let cycle = 0; cycle < 12; cycle++) {
+  console.log("[DEBUG-arm] cycle", cycle);
   for (const appearance of ["light", "dark"]) {
     for (const blur of [true, false]) {
       for (const opacity of [0, 68, 95]) {
@@ -186,6 +188,7 @@ try {
     }
     await configure(appearance, "solid", true, 68);
     assert.ok((await response(`${appearance}-solid`)) < 2);
+  }
   }
   await configure("light", "glass", false, 0);
   // Establish a rendered clear frame before resizing. Otherwise macOS can
