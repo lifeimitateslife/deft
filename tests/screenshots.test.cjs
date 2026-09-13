@@ -2,6 +2,15 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+
+test("GitHub opens with the approved full-width DEFT cover", () => {
+  const readme = fs.readFileSync(path.join(__dirname, "../README.md"), "utf8");
+  assert.ok(readme.startsWith("[![DEFT - Life Imitates Life](docs/deft-cover.png)](docs/deft-cover.png)"));
+  const bytes = fs.readFileSync(path.join(__dirname, "../docs/deft-cover.png"));
+  assert.equal(bytes.toString("ascii", 12, 16), "IHDR");
+  assert.equal(bytes.readUInt32BE(16), 1672);
+  assert.equal(bytes.readUInt32BE(20), 941);
+});
 test("GitHub showcase uses native-size desktop captures with honest settings labels", () => {
   const readme = fs.readFileSync(path.join(__dirname, "../README.md"), "utf8");
   for (const name of [

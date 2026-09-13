@@ -1,8 +1,4 @@
-<img src="assets/icon.png" width="88" height="88" alt="DEFT logo">
-
-# DEFT
-
-By **Life Imitates Life**
+[![DEFT - Life Imitates Life](docs/deft-cover.png)](docs/deft-cover.png)
 
 A focused text and Markdown editor for Windows and macOS. Open a file and start writing, without an account, vault, server or subscription.
 
