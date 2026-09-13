@@ -41,7 +41,11 @@ test("Showcase keeps full-size examples in sections open by default", () => {
   const readme = fs.readFileSync(path.join(__dirname, "../README.md"), "utf8");
   const sections = [...readme.matchAll(/<details open>\s*<summary>(.*?)<\/summary>\s*([\s\S]*?)<\/details>/g)];
   assert.equal(sections.length, 3);
-  for (const section of sections) assert.ok(section[1].includes("Click to collapse / expand"));
+  assert.deepEqual(sections.map((section) => section[1]), [
+    "<strong>Blur and transparency</strong>",
+    "<strong>Custom colors</strong>",
+    "<strong>Fonts and typography</strong>",
+  ]);
   assert.equal((readme.match(/<details\b/g) || []).length, 3);
   assert.ok(readme.indexOf("docs/deft-windows.png") < readme.indexOf("<details open>"));
   for (const [index, names] of [
