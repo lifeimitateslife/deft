@@ -99,7 +99,12 @@ try {
     await page
       .getByRole("button", { name: "Close Preferences", exact: true })
       .click();
-    await page.evaluate(() => window.deft.settings({}));
+    // Observe the real close path without a test-only material refresh.
+    await page.waitForFunction(
+      () =>
+        getComputedStyle(document.querySelector(".settings")).display ===
+        "none",
+    );
   }
   async function response(label) {
     const samples = [];
@@ -180,6 +185,12 @@ try {
   // Establish a rendered clear frame before resizing. Otherwise macOS can
   // resize a cached snapshot of the preferences panel we just closed.
   assert.ok((await response("clear-before-resize")) > 220);
+  await menuCommand(app, page, "View", "Preferences…");
+  await page.waitForTimeout(300);
+  await page
+    .getByRole("button", { name: "Close Preferences", exact: true })
+    .click();
+  assert.ok((await response("clear-after-panel-close")) > 220);
   await app.evaluate(() => globalThis.deftTestWindow.setSize(740, 560));
   assert.ok((await response("clear-after-resize")) > 220);
   assert.equal(
