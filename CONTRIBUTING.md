@@ -72,3 +72,5 @@ Use the existing repository identity and `lifeimitateslife/deft` remote. Do not 
 6. Verify anonymous downloads and checksums, then audit README claims against those exact artifacts.
 
 Do not commit installers or scratch outputs. Preserve licenses and notices. First-party prose uses ordinary hyphens rather than em dashes.
+
+`node tests/tabs-recents.mjs` exercises real drag and keyboard tab reordering, draft and undo preservation, session order restoration, and the Recent button with existing tabs, duplicate basenames and missing files. It runs against packaged Windows and Mac apps in CI; the workflow retains a menu screenshot.

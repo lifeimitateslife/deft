@@ -63,6 +63,14 @@ jobs:
         if: runner.os == 'macOS'
         run: defaults write com.apple.universalaccess reduceTransparency -bool false
       - run: node scripts/package-test.cjs
+      - name: Save tabs and recent files evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deft-${{ matrix.platform }}-tabs-recents
+          path: .scratch/tabs-recents-*/*.png
+          if-no-files-found: ignore
+          include-hidden-files: true
       - name: Save update notice evidence
         if: always()
         uses: actions/upload-artifact@v4

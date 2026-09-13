@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { TabStrip } from "./TabStrip";
 import { ApplicationMenu } from "./ApplicationMenu";
 import { FormattingToolbar, LinkEditor } from "./FormattingToolbar";
 import { UpdateNotice } from "./UpdateNotice";
@@ -42,6 +43,7 @@ function App() {
     unique,
     headings,
     setActive,
+    reorder,
     update,
     report,
   } = useWorkbench();
@@ -127,37 +129,13 @@ function App() {
           command={command}
           open={open}
         />
-        <nav className="tabs" aria-label="Open documents">
-          {tabs.map((tab) => (
-            <div
-              key={tab.doc.id}
-              className={`tab ${tab === current ? "active" : ""}`}
-            >
-              <button
-                aria-pressed={tab === current}
-                title={tab.doc.path || "Unsaved document"}
-                onClick={() => setActive(tab.doc.id)}
-              >
-                {tab.doc.dirty ? (
-                  <span className="dirty" aria-label="Unsaved changes">
-                    ●
-                  </span>
-                ) : (
-                  <span className="filemark">
-                    {tab.doc.kind === "markdown" ? "M" : "T"}
-                  </span>
-                )}
-                {tab.doc.name}
-              </button>
-              <button
-                aria-label={`Close ${tab.doc.name}`}
-                onClick={() => void close(tab)}
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </nav>
+        <TabStrip
+          tabs={tabs}
+          current={current}
+          select={setActive}
+          close={close}
+          reorder={reorder}
+        />
         <button
           className="new-tab"
           aria-label="New text tab"

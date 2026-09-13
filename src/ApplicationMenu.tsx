@@ -40,6 +40,7 @@ export function ApplicationMenu({
     [point, setPoint] = useState<{ x: number; y: number } | null>(null);
   const root = useRef<HTMLDivElement>(null),
     trigger = useRef<HTMLButtonElement>(null),
+    recentTrigger = useRef<HTMLButtonElement>(null),
     list = useRef<HTMLDivElement>(null);
   const editable =
     !!current && !current.doc.readOnly && current.doc.mode !== "read";
@@ -122,7 +123,8 @@ export function ApplicationMenu({
         ".settings:not([hidden]) button",
       );
       if (preferences) preferences.focus();
-      else current?.view?.focus();
+      else if (current?.view) current.view.focus();
+      else (recentTrigger.current || trigger.current)?.focus();
     }
   }
   useEffect(() => {
@@ -222,6 +224,20 @@ export function ApplicationMenu({
           </svg>
         </button>
       )}
+      <button
+        ref={recentTrigger}
+        aria-label="Recent files"
+        title="Open recent files"
+        aria-haspopup="menu"
+        aria-expanded={shown && group === "recent"}
+        onClick={() => {
+          setGroup("recent");
+          setPoint(null);
+          setShown(!shown || group !== "recent");
+        }}
+      >
+        Recent
+      </button>
       <div
         ref={list}
         className="application-popup"
@@ -273,12 +289,22 @@ export function ApplicationMenu({
                 <button
                   role="menuitem"
                   aria-label={label}
-                  key={label}
+                  title={
+                    action.startsWith("recent:") ? action.slice(7) : undefined
+                  }
+                  key={action}
                   disabled={disabled(action)}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => run(action)}
                 >
-                  {label}
+                  {action.startsWith("recent:") ? (
+                    <span className="recent-file">
+                      <span>{label}</span>
+                      <small>{action.slice(7)}</small>
+                    </span>
+                  ) : (
+                    label
+                  )}
                   <span className="shortcut">
                     {label === "New tab"
                       ? shortcutLabel("new-text").replace("+N", "+T")

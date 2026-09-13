@@ -17,6 +17,12 @@ A focused text and Markdown editor for Windows and macOS. Open a file and start 
 
 ![The actual DEFT Windows application](docs/deft-windows.png)
 
+## Organize tabs and reopen files
+
+Drag a tab onto another tab to move it to that position on Windows or Mac. To reorder with the keyboard, focus a tab and press Alt+Left or Alt+Right. Reordering preserves the active document, edits and undo history. Tab order is restored when session restoration is enabled.
+
+The **Recent** button beside the tabs opens recent files without closing your current documents. Folder paths distinguish files with the same name. Selecting a file that is already open switches to its existing tab. File > Recent Files remains available too.
+
 ## Update notifications
 
 Starting with 0.2.5, DEFT quietly checks this repository's public GitHub releases on launch and at most once a day while running. When a newer numbered release has an installer for your Windows PC or Mac, a small notice offers **View update**. That opens the official release page; you download and install it yourself. DEFT does not replace itself or restart your work.
