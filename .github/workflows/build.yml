@@ -39,6 +39,12 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - name: Save Windows native candidate
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-blur-native-candidate
+          path: desktop/native/windows-blur.node
       - run: npm run test:ui
       - run: npm run test:session
       - run: npm run test:handoff

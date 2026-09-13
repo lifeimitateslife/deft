@@ -10,7 +10,7 @@
   "main": "desktop/main.cjs",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/build-mac-blur.cjs && tsc --noEmit && vite build",
+    "build": "node scripts/build-mac-blur.cjs && node scripts/build-windows-blur.cjs && tsc --noEmit && vite build",
     "start": "electron .",
     "test": "node --import tsx --test tests/*.test.cjs tests/*.test.ts",
     "test:ui": "node tests/native.mjs",

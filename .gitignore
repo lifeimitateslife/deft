@@ -5,3 +5,4 @@ release/
 test-results/
 *.log
 desktop/native/
+native/build/
