@@ -14,6 +14,7 @@
 #include <winrt/Windows.UI.Composition.Desktop.h>
 #include <cmath>
 #include <memory>
+#include <cstdio>
 
 using namespace winrt;
 using namespace Windows::UI::Composition;
@@ -103,8 +104,10 @@ struct Backdrop {
     visual.IsVisible(strength > 0);
   }
   ~Backdrop() {
-    if (target) { target.Root(nullptr); target.Close(); }
-    if (compositor) compositor.Close();
+    try {
+      if (target) { target.Root(nullptr); target.Close(); }
+      if (compositor) compositor.Close();
+    } catch (...) { /* The HWND/compositor may already be gone at shutdown. */ }
     // DispatcherQueue is thread-owned and shuts down with Electron's UI thread.
   }
 };
@@ -130,6 +133,7 @@ static napi_value apply(napi_env env, napi_callback_info info) {
         backdrop->apply(strength);
         success = true;
       } catch (hresult_error const& error) {
+        fprintf(stderr, "Windows blur unavailable: HRESULT 0x%08lx\n", static_cast<unsigned long>(error.code().value));
         OutputDebugStringW(error.message().c_str());
         backdrop.reset();
       } catch (...) { backdrop.reset(); }
