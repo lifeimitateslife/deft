@@ -27,7 +27,7 @@ Start with System, Light or Dark, or build a **Custom** theme around your own co
 
 Light text over a dark tint keeps the words readable while the wallpaper stays unblurred. **60% opacity, 0% blur**, with a translucent title bar.
 
-[![Unblurred wallpaper behind light text and a dark translucent surface](docs/deft-clear.png)](docs/deft-clear.png)
+[![Unblurred wallpaper behind light text and a dark translucent surface](docs/deft-clear-contrast.png)](docs/deft-clear-contrast.png)
 
 #### Frosted and focused
 

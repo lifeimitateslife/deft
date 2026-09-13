@@ -6,7 +6,7 @@ test("GitHub showcase uses native-size desktop captures with honest settings lab
   const readme = fs.readFileSync(path.join(__dirname, "../README.md"), "utf8");
   for (const name of [
     "deft-windows.png",
-    "deft-clear.png",
+    "deft-clear-contrast.png",
     "deft-frosted.png",
     "deft-custom-theme.png",
     "deft-fonts.png",
