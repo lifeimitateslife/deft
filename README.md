@@ -51,6 +51,16 @@ Shown below: a plum-and-cream custom theme with **Georgia, 88% opacity and 70% b
 
 [![Custom theme controls showing separate window, document, text and accent colors](docs/deft-custom-theme.png)](docs/deft-custom-theme.png)
 
+#### Solid, with your colors
+
+Prefer an opaque writing surface? **Solid material keeps your custom palette without the desktop showing through.** This near-black theme pairs a charcoal window with a subtly purple-black document, light text and a purple accent.
+
+[![Solid DEFT editor with a near-black custom theme and light text](docs/deft-solid.png)](docs/deft-solid.png)
+
+The same individual color controls work in Solid: **window `#0e0f10`, document `#06040b`, text `#e7e8eb`, accent `#4d3e98`**. Glass opacity and blur values remain saved, but their controls are inactive while Solid is selected.
+
+[![Preferences showing Solid material and the four custom theme colors](docs/deft-solid-colors.png)](docs/deft-solid-colors.png)
+
 </details>
 
 <details open>

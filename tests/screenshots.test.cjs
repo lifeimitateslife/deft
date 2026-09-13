@@ -19,6 +19,8 @@ test("GitHub showcase uses native-size desktop captures with honest settings lab
     "deft-clear-contrast.png",
     "deft-frosted.png",
     "deft-custom-theme.png",
+    "deft-solid.png",
+    "deft-solid-colors.png",
     "deft-fonts.png",
   ]) {
     const bytes = fs.readFileSync(path.join(__dirname, "../docs", name));
@@ -50,7 +52,7 @@ test("Showcase keeps full-size examples in sections open by default", () => {
   assert.ok(readme.indexOf("docs/deft-windows.png") < readme.indexOf("<details open>"));
   for (const [index, names] of [
     ["deft-clear-contrast.png", "deft-frosted.png"],
-    ["deft-custom-theme.png"],
+    ["deft-custom-theme.png", "deft-solid.png", "deft-solid-colors.png"],
     ["deft-fonts.png"],
   ].entries()) {
     for (const name of names) assert.ok(sections[index][2].includes(`](docs/${name})`));
