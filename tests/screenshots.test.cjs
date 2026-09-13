@@ -3,9 +3,10 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 
-test("GitHub opens with the approved full-width DEFT cover", () => {
+test("GitHub opens with the approved DEFT cover at a restrained width", () => {
   const readme = fs.readFileSync(path.join(__dirname, "../README.md"), "utf8");
-  assert.ok(readme.startsWith("[![DEFT - Life Imitates Life](docs/deft-cover.png)](docs/deft-cover.png)"));
+  assert.ok(readme.startsWith('<p align="center">'));
+  assert.ok(readme.includes('<a href="docs/deft-cover.png"><img src="docs/deft-cover.png" width="640" alt="DEFT - Life Imitates Life"></a>'));
   const bytes = fs.readFileSync(path.join(__dirname, "../docs/deft-cover.png"));
   assert.equal(bytes.toString("ascii", 12, 16), "IHDR");
   assert.equal(bytes.readUInt32BE(16), 1672);
@@ -36,12 +37,12 @@ test("GitHub showcase uses native-size desktop captures with honest settings lab
   assert.ok(!readme.includes("More 4K screenshots"));
 });
 
-test("Showcase keeps one preview visible and groups full-size examples into collapsed sections", () => {
+test("Showcase keeps full-size examples in sections open by default", () => {
   const readme = fs.readFileSync(path.join(__dirname, "../README.md"), "utf8");
-  const sections = [...readme.matchAll(/<details>\s*<summary>(.*?)<\/summary>\s*([\s\S]*?)<\/details>/g)];
+  const sections = [...readme.matchAll(/<details open>\s*<summary>(.*?)<\/summary>\s*([\s\S]*?)<\/details>/g)];
   assert.equal(sections.length, 3);
-  assert.ok(!/<details\s+open\b/.test(readme));
-  assert.ok(readme.indexOf("docs/deft-windows.png") < readme.indexOf("<details>"));
+  assert.equal((readme.match(/<details\b/g) || []).length, 3);
+  assert.ok(readme.indexOf("docs/deft-windows.png") < readme.indexOf("<details open>"));
   for (const [index, names] of [
     ["deft-clear-contrast.png", "deft-frosted.png"],
     ["deft-custom-theme.png"],
