@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="docs/deft-cover.png"><img src="docs/deft-cover.png" width="640" alt="DEFT - Life Imitates Life"></a>
+  <a href="docs/deft-banner.png"><img src="docs/deft-banner.png" width="100%" alt="DEFT - Life Imitates Life"></a>
 </p>
 
 A focused text and Markdown editor for Windows and macOS. Open a file and start writing, without an account, vault, server or subscription.
@@ -21,10 +21,10 @@ Your desktop, softened. Your writing, sharp. Shown with a custom dark palette, *
 
 Start with System, Light or Dark, or build a **Custom** theme around your own colors and fonts. Background opacity and blur stay independent, so the look can change without fading your writing.
 
-Explore the full-size examples below. Collapse any section to keep browsing.
+Explore the full-size examples below. Click any section heading to collapse or expand its screenshots.
 
 <details open>
-<summary><strong>Blur and transparency</strong> · From clear wallpaper to a frosted writing surface</summary>
+<summary><strong>Blur and transparency · Click to collapse / expand</strong></summary>
 
 #### Clear, with contrast
 
@@ -41,7 +41,7 @@ Turn up blur to soften the background, then set opacity to suit your writing. **
 </details>
 
 <details open>
-<summary><strong>Custom colors</strong> · Your window, document, text and accent, individually</summary>
+<summary><strong>Custom colors · Click to collapse / expand</strong></summary>
 
 #### Your palette, down to the accent
 
@@ -54,7 +54,7 @@ Shown below: a plum-and-cream custom theme with **Georgia, 88% opacity and 70% b
 </details>
 
 <details open>
-<summary><strong>Fonts and typography</strong> · Separate writing and code fonts, with live previews</summary>
+<summary><strong>Fonts and typography · Click to collapse / expand</strong></summary>
 
 #### Your type, independently
 
