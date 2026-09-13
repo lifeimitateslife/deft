@@ -23,6 +23,9 @@ async function launch() {
   page = await app.firstWindow();
   await placeTestWindow(app);
   await page.locator(".cm-content").waitFor();
+  await app.evaluate(({ BrowserWindow }) => {
+    globalThis.titlebarMain = BrowserWindow.getAllWindows()[0];
+  });
 }
 async function capture(label) {
   const file = path.join(root, `${label}.png`);
@@ -148,7 +151,9 @@ try {
       await back.loadURL(
         "data:text/html," +
           encodeURIComponent(
-            "<style>body{margin:0;height:100vh;background:repeating-linear-gradient(90deg,#000 0px,#000 64px,#fff 64px,#fff 128px)}</style>",
+            // Match each platform's existing blur regression fixture: macOS's
+            // radius kernel needs finer detail to resolve its low-end steps.
+            `<style>body{margin:0;height:100vh;background:repeating-linear-gradient(90deg,#000 0px,#000 ${process.platform === "darwin" ? 24 : 64}px,#fff ${process.platform === "darwin" ? 24 : 64}px,#fff ${process.platform === "darwin" ? 48 : 128}px)}</style>`,
           ),
       );
       if (process.platform === "win32") win.setParentWindow(back);
@@ -217,7 +222,7 @@ try {
     .getByRole("button", { name: "Close Preferences", exact: true })
     .click();
   await app.evaluate(async ({ BrowserWindow }) => {
-    const win = BrowserWindow.getAllWindows()[0];
+    const win = globalThis.titlebarMain;
     win.setSize(760, 560);
     await new Promise((resolve) => {
       win.once("minimize", resolve);
@@ -231,7 +236,7 @@ try {
   });
   await page.screenshot({ path: path.join(root, "restored.png") });
   await app.evaluate(async ({ BrowserWindow }) => {
-    const win = BrowserWindow.getAllWindows()[0];
+    const win = globalThis.titlebarMain;
     await new Promise((resolve) => {
       win.once("maximize", resolve);
       win.maximize();
@@ -247,7 +252,7 @@ try {
   });
   await page.waitForFunction(() => document.querySelector(".title-bar").hidden);
   await app.evaluate(async ({ BrowserWindow }) => {
-    const win = BrowserWindow.getAllWindows()[0];
+    const win = globalThis.titlebarMain;
     await new Promise((resolve) => {
       win.once("leave-full-screen", resolve);
       win.setFullScreen(false);
