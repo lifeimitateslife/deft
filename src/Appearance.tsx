@@ -224,8 +224,10 @@ export function Appearance({
         </label>
       )}
       <p className="default-hint">
-        Default: {defaults.glassOpacity}%. Lower values show more background
-        through the window. Text stays opaque.
+        Background opacity defaults to {defaults.glassOpacity}%. Lower opacity
+        shows more of the background. Text stays opaque.
+        {material.blurStrengthSupported &&
+          ` Blur defaults to ${defaults.backgroundBlurStrength}%.`}
       </p>
       <p>{material.reason}</p>
       <label>
