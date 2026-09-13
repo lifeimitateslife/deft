@@ -51,14 +51,31 @@ try {
     assert.deepEqual(await order(), original, "Preview must not commit order");
   }
   await start();
-  const preview = await page
-    .locator(".tab")
-    .evaluateAll((tabs) =>
-      tabs.map((el) => ({
-        transform: getComputedStyle(el).transform,
-        transition: getComputedStyle(el).transitionDuration,
-      })),
-    );
+  await page
+    .locator(".tab.dragging > button")
+    .first()
+    .evaluate((button) => {
+      for (const type of [
+        "pointerdown",
+        "pointerup",
+        "pointercancel",
+        "lostpointercapture",
+      ])
+        button.dispatchEvent(
+          new PointerEvent(type, { pointerId: 99, button: 0, bubbles: true }),
+        );
+    });
+  assert.equal(
+    await page.locator(".tab.dragging").count(),
+    1,
+    "A secondary pointer cannot end the owned drag",
+  );
+  const preview = await page.locator(".tab").evaluateAll((tabs) =>
+    tabs.map((el) => ({
+      transform: getComputedStyle(el).transform,
+      transition: getComputedStyle(el).transitionDuration,
+    })),
+  );
   assert.notEqual(preview[0].transform, "none");
   assert.equal(preview[1].transition, "0.18s");
   await page.screenshot({ path: path.join(root, "drag-preview.png") });

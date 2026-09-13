@@ -742,7 +742,8 @@ if (locked)
       if (process.platform !== "darwin") win.removeMenu();
       material(settings.material || defaults.material);
       await win.loadFile(path.join(__dirname, "../dist/index.html"));
-      win.show();
+      // Documentation capture renders the real app without taking desktop focus.
+      if (!app.commandLine.hasSwitch("deft-capture")) win.show();
     })
     .catch((error) => {
       dialog.showErrorBox("DEFT could not start", error.message);

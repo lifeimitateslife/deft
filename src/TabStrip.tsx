@@ -158,7 +158,7 @@ export function TabStrip({
               aria-pressed={tab === current}
               title={`${tab.doc.path || "Unsaved document"}\nDrag to reorder. Alt+Left/Right moves a focused tab.`}
               onPointerDown={(event) => {
-                if (event.button !== 0) return;
+                if (event.button !== 0 || drag.current) return;
                 suppressClick.current = false;
                 nodes().forEach((node) =>
                   node
@@ -185,9 +185,15 @@ export function TabStrip({
                   tick();
                 }
               }}
-              onPointerUp={() => finish(true)}
-              onPointerCancel={() => finish(false)}
-              onLostPointerCapture={() => finish(false)}
+              onPointerUp={(event) => {
+                if (drag.current?.pointer === event.pointerId) finish(true);
+              }}
+              onPointerCancel={(event) => {
+                if (drag.current?.pointer === event.pointerId) finish(false);
+              }}
+              onLostPointerCapture={(event) => {
+                if (drag.current?.pointer === event.pointerId) finish(false);
+              }}
               onKeyDown={(event) => {
                 if (event.key === "Escape" && drag.current) {
                   event.preventDefault();
