@@ -183,6 +183,10 @@ try {
   assert.ok(levels[4].contrast < levels[0].contrast * 0.2);
   await sample(30, "lifecycle-baseline");
   await app.evaluate(() => globalThis.windowsBlurTest.win.setSize(760, 560));
+  assert.deepEqual(
+    await app.evaluate(() => globalThis.windowsBlurTest.win.getSize()),
+    [760, 560],
+  );
   const resized = await sample(30, "resized", false);
   assert.ok(Math.abs(resized.contrast - levels[2].contrast) < 5);
   await app.evaluate(() => globalThis.windowsBlurTest.back.focus());
@@ -208,6 +212,11 @@ try {
   );
   await page.evaluate(() => window.deft.settings({ material: "solid" }));
   assert.ok((await sample(60, "solid")).contrast < 1);
+  await page.evaluate(() => window.deft.settings({ material: "glass" }));
+  assert.ok(
+    (await sample(0, "clear-again")).contrast > 100,
+    "Returning to zero must remove the native blur",
+  );
   console.log(`PASS packaged Windows blur evidence: ${root}`);
 } finally {
   await app.evaluate(({ app }) => app.exit(0)).catch(() => {});
