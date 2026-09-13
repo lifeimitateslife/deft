@@ -28,6 +28,13 @@ Your desktop, softened. Your writing, sharp. Shown with a custom dark palette, *
 
 Actual desktop-composited captures of the installed Windows app at 1040 x 820 pixels, without upscaling or simulated blur. The top title strip has no name or logo on Windows or Mac. Wallpaper and settings affect contrast; raise opacity when you need a quieter writing surface.
 
+| Your palette | Your type |
+| --- | --- |
+| [![Custom plum and cream colors with Georgia writing text](docs/deft-custom-theme.png)](docs/deft-custom-theme.png) | [![Installed font browser with live family previews](docs/deft-fonts.png)](docs/deft-fonts.png) |
+| Choose window, document, text and accent colors. Shown with Georgia, 88% opacity and 70% blur. | Browse and search fonts installed on your computer. Choose writing and source/code fonts separately. |
+
+Real Preferences and font-browser captures from DEFT 0.2.9. Available font families depend on your computer; font files stay local.
+
 ## Organize tabs and reopen files
 
 Drag a tab to reorder it on Windows or Mac. It follows the pointer while neighboring tabs slide aside, then settles into place on release. Drag near an edge to scroll through overflow tabs, or press Escape to cancel. App and system reduced-motion settings disable the settling animations. To reorder with the keyboard, focus a tab and press Alt+Left or Alt+Right. Reordering preserves the active document, edits and undo history. Tab order is restored when session restoration is enabled.
