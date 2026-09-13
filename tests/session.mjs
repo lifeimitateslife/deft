@@ -58,10 +58,13 @@ async function quit() {
 try {
   let page = await launch([file]);
   await page.locator(".cm-content").fill("named unfinished");
+  const namedEditor = await page.locator(".cm-content").elementHandle();
   await page.keyboard.press(`${mod}+t`);
   await page.waitForFunction(
     () => document.querySelectorAll(".tab").length === 2,
   );
+  // The tab strip commits before the effect mounts the new CodeMirror view.
+  await page.waitForFunction((editor) => !editor.isConnected, namedEditor);
   await page.locator(".cm-content").fill("lyrics last keystroke 雪");
   await quit();
   assert.deepEqual(await fs.readFile(file), bytes);

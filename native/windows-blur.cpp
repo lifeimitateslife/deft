@@ -15,6 +15,8 @@
 #include <cmath>
 #include <memory>
 #include <cstdio>
+#include <future>
+#include <functional>
 
 using namespace winrt;
 using namespace Windows::UI::Composition;
@@ -81,11 +83,12 @@ struct Backdrop {
   CompositionEffectBrush brush{nullptr};
   HWND window{};
   explicit Backdrop(HWND hwnd) : window(hwnd) {
-    if (!Windows::System::DispatcherQueue::GetForCurrentThread()) {
-      DispatcherQueueOptions options{sizeof(options), DQTYPE_THREAD_CURRENT, DQTAT_COM_NONE};
-      check_hresult(CreateDispatcherQueueController(options,
-        reinterpret_cast<ABI::Windows::System::IDispatcherQueueController**>(put_abi(queue))));
-    }
+    // Own the composition thread and its message loop, rather than installing
+    // a DispatcherQueue into Electron's UI loop without owning its shutdown.
+    DispatcherQueueOptions options{sizeof(options), DQTYPE_THREAD_DEDICATED, DQTAT_COM_STA};
+    check_hresult(CreateDispatcherQueueController(options,
+      reinterpret_cast<ABI::Windows::System::IDispatcherQueueController**>(put_abi(queue))));
+    try { run([this, hwnd] {
     compositor = Compositor();
     check_hresult(compositor.as<ABI::Windows::UI::Composition::Desktop::ICompositorDesktopInterop>()
       ->CreateDesktopWindowTarget(hwnd, false,
@@ -98,18 +101,45 @@ struct Backdrop {
     brush.SetSourceParameter(L"Backdrop", compositor.CreateBackdropBrush());
     visual.Brush(brush);
     target.Root(visual);
+    }); } catch (...) { stop(); throw; }
   }
   void apply(double strength) {
-    brush.Properties().InsertScalar(L"Blur.StandardDeviation", static_cast<float>(strength * .5));
-    visual.IsVisible(strength > 0);
+    run([this, strength] {
+      brush.Properties().InsertScalar(L"Blur.StandardDeviation", static_cast<float>(strength * .5));
+      visual.IsVisible(strength > 0);
+    });
   }
-  ~Backdrop() {
+  void run(std::function<void()> work) {
+    std::promise<void> done;
+    auto result = done.get_future();
+    if (!queue.DispatcherQueue().TryEnqueue([&done, work = std::move(work)] {
+      try { work(); done.set_value(); }
+      catch (...) { done.set_exception(std::current_exception()); }
+    })) throw hresult_error(RO_E_CLOSED);
+    result.get();
+  }
+  void stop() noexcept {
+    if (!queue) return;
     try {
-      if (target) { target.Root(nullptr); target.Close(); }
-      if (compositor) compositor.Close();
+      run([this] {
+        if (target) { target.Root(nullptr); target.Close(); }
+        brush = nullptr; visual = nullptr; target = nullptr;
+        if (compositor) compositor.Close();
+        compositor = nullptr;
+      });
     } catch (...) { /* The HWND/compositor may already be gone at shutdown. */ }
-    // DispatcherQueue is thread-owned and shuts down with Electron's UI thread.
+    try {
+      auto shutdown = queue.ShutdownQueueAsync();
+      // Wait on an MTA worker while the owned queue drains its own message loop.
+      std::async(std::launch::async, [shutdown] {
+        init_apartment(apartment_type::multi_threaded);
+        try { shutdown.get(); } catch (...) { uninit_apartment(); throw; }
+        uninit_apartment();
+      }).get();
+    } catch (...) {}
+    queue = nullptr;
   }
+  ~Backdrop() { stop(); }
 };
 
 static std::unique_ptr<Backdrop> backdrop;

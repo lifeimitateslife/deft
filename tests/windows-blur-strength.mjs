@@ -47,7 +47,7 @@ try {
     await back.loadURL(
       "data:text/html," +
         encodeURIComponent(
-          "<style>body{margin:0;height:100vh;background:repeating-linear-gradient(90deg,#000 0px,#000 24px,#fff 24px,#fff 48px)}</style>",
+          "<style>body{margin:0;height:100vh;background:repeating-linear-gradient(90deg,#000 0px,#000 64px,#fff 64px,#fff 128px)}</style>",
         ),
     );
     win.setParentWindow(back);
@@ -59,7 +59,7 @@ try {
     return {
       version: app.getVersion(),
       packaged: app.isPackaged,
-      os: require("node:os").release(),
+      os: process.mainModule.require("node:os").release(),
       display: screen.getDisplayMatching(win.getBounds()),
     };
   });
@@ -71,11 +71,15 @@ try {
       "position:fixed;left:30px;top:250px;width:160px;height:32px;background:repeating-linear-gradient(90deg,#ff00ff 0px,#ff00ff 4px,#00ff00 4px,#00ff00 8px);z-index:99999;pointer-events:none";
     document.body.append(marker);
   });
-  async function sample(strength, label = String(strength)) {
-    const support = await page.evaluate(async (strength) => {
-      await window.deft.settings({ backgroundBlurStrength: strength });
-      return window.deft.material((await window.deft.settings()).material);
-    }, strength);
+  let lastSupport;
+  async function sample(strength, label = String(strength), update = true) {
+    const support = update
+      ? await page.evaluate(async (strength) => {
+          await window.deft.settings({ backgroundBlurStrength: strength });
+          return window.deft.material((await window.deft.settings()).material);
+        }, strength)
+      : lastSupport;
+    lastSupport = support;
     await page.waitForTimeout(600);
     const capture = await app.evaluate(async ({ desktopCapturer, screen }) => {
       const { win, back } = globalThis.windowsBlurTest;
@@ -118,17 +122,21 @@ try {
       .extract({ left: 30, top: 250, width: 160, height: 32 })
       .raw()
       .toBuffer();
-    const marker = await sharp(bytes)
-      .extract({ left: 31, top: 254, width: 2, height: 2 })
-      .stats();
+    const marker = await sharp(
+      await sharp(bytes)
+        .extract({ left: 31, top: 254, width: 2, height: 2 })
+        .toBuffer(),
+    ).stats();
     const rgb = marker.channels.slice(0, 3).map((c) => c.mean);
     assert.ok(
       rgb[0] > 245 && rgb[1] < 10 && rgb[2] > 245,
       `Foreground marker missing: ${rgb}`,
     );
-    const stats = await sharp(bytes)
-      .extract({ left: 340, top: 320, width: 240, height: 120 })
-      .stats();
+    const stats = await sharp(
+      await sharp(bytes)
+        .extract({ left: 320, top: 320, width: 256, height: 120 })
+        .toBuffer(),
+    ).stats();
     const row = {
       label,
       strength,
@@ -173,11 +181,12 @@ try {
     assert.equal(levels[i].windowOpacity, 1);
   }
   assert.ok(levels[4].contrast < levels[0].contrast * 0.2);
+  await sample(30, "lifecycle-baseline");
   await app.evaluate(() => globalThis.windowsBlurTest.win.setSize(760, 560));
-  const resized = await sample(30, "resized");
+  const resized = await sample(30, "resized", false);
   assert.ok(Math.abs(resized.contrast - levels[2].contrast) < 5);
   await app.evaluate(() => globalThis.windowsBlurTest.back.focus());
-  const inactive = await sample(30, "inactive");
+  const inactive = await sample(30, "inactive", false);
   assert.equal(inactive.focused, false);
   assert.ok(Math.abs(inactive.contrast - levels[2].contrast) < 5);
   await app.evaluate(async () => {
@@ -193,7 +202,9 @@ try {
     win.focus();
   });
   assert.ok(
-    Math.abs((await sample(30, "restored")).contrast - levels[2].contrast) < 5,
+    Math.abs(
+      (await sample(30, "restored", false)).contrast - levels[2].contrast,
+    ) < 5,
   );
   await page.evaluate(() => window.deft.settings({ material: "solid" }));
   assert.ok((await sample(60, "solid")).contrast < 1);

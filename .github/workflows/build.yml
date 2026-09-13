@@ -69,6 +69,22 @@ jobs:
         if: runner.os == 'macOS'
         run: defaults write com.apple.universalaccess reduceTransparency -bool false
       - run: node scripts/package-test.cjs
+      - name: Verify Windows background compositing
+        if: runner.os == 'Windows'
+        run: node tests/windows-blur-strength.mjs
+        env:
+          DEFT_EXECUTABLE: ${{ github.workspace }}/release/win-unpacked/DEFT.exe
+      - name: Save Windows blur evidence
+        if: runner.os == 'Windows' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-blur-verification
+          path: |
+            .scratch/windows-blur-strength-*/results.json
+            .scratch/windows-blur-strength-*/*.png
+            .scratch/windows-blur-ui-*/*.png
+          if-no-files-found: ignore
+          include-hidden-files: true
       - name: Save tabs and recent files evidence
         if: always()
         uses: actions/upload-artifact@v4
