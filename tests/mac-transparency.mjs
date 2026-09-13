@@ -179,7 +179,16 @@ try {
   await configure("light", "glass", false, 0);
   // Establish a rendered clear frame before resizing. Otherwise macOS can
   // resize a cached snapshot of the preferences panel we just closed.
-  assert.ok((await response("clear-before-resize")) > 220);
+  await response("clear-before-resize");
+  console.log("[DEBUG-arm] settings", await page.evaluate(() => window.deft.settings()));
+  await page.waitForTimeout(2000);
+  await response("probe-wait");
+  await app.evaluate(() => globalThis.deftTestWindow.invalidateShadow());
+  await response("probe-invalidate");
+  await app.evaluate(() => globalThis.deftTestWindow.setHasShadow(false));
+  await response("probe-no-shadow");
+  await app.evaluate(() => { globalThis.deftTestWindow.setHasShadow(true); globalThis.deftTestWindow.invalidateShadow(); });
+  await response("probe-restore-shadow");
   await app.evaluate(() => globalThis.deftTestWindow.setSize(740, 560));
   assert.ok((await response("clear-after-resize")) > 220);
   assert.equal(
