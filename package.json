@@ -1,6 +1,6 @@
 {
   "name": "deft",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "A fast, focused text and Markdown editor.",
   "author": {
     "name": "Life Imitates Life"
@@ -113,7 +113,7 @@
         "to": "document.ico"
       }
     ],
-    "copyright": "Copyright \u00a9 2026 Life Imitates Life",
+    "copyright": "Copyright © 2026 Life Imitates Life",
     "asarUnpack": [
       "desktop/native/*.node"
     ]
