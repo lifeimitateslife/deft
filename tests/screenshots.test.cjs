@@ -16,9 +16,11 @@ test("GitHub showcase uses native-size desktop captures with honest settings lab
     assert.equal(bytes.readUInt32BE(16), 1040);
     assert.equal(bytes.readUInt32BE(20), 820);
     assert.ok(readme.includes(`docs/${name}`));
+    const imageLine = readme.split(/\r?\n/).find((line) => line.includes(`](docs/${name})`));
+    assert.ok(imageLine && !imageLine.trimStart().startsWith("|"), "Showcase images must not shrink into table cells");
   }
   assert.ok(readme.includes("8% background opacity and 14% blur"));
-  assert.ok(readme.includes("0% opacity, 0% blur"));
+  assert.ok(readme.includes("60% opacity, 0% blur"));
   assert.ok(readme.includes("75% opacity, 90% blur"));
   assert.ok(readme.includes("Georgia, 88% opacity and 70% blur"));
   assert.ok(readme.includes("font families depend on your computer"));

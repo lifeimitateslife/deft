@@ -21,19 +21,35 @@ Your desktop, softened. Your writing, sharp. Shown with a custom dark palette, *
 
 ### Make it yours
 
-| Clear | Frosted |
-| --- | --- |
-| [![Clear transparency with a light palette](docs/deft-clear.png)](docs/deft-clear.png) | [![Strong blur with a dark palette](docs/deft-frosted.png)](docs/deft-frosted.png) |
-| 0% opacity, 0% blur. Light colors and a translucent title bar. | 75% opacity, 90% blur. Dark colors and a translucent title bar. |
+Start with System, Light or Dark, or build a **Custom** theme around your own colors and fonts. Background opacity and blur stay independent, so the look can change without fading your writing.
 
-Actual desktop-composited captures of the installed Windows app at 1040 x 820 pixels, without upscaling or simulated blur. The top title strip has no name or logo on Windows or Mac. Wallpaper and settings affect contrast; raise opacity when you need a quieter writing surface.
+#### Clear, with contrast
 
-| Your palette | Your type |
-| --- | --- |
-| [![Custom plum and cream colors with Georgia writing text](docs/deft-custom-theme.png)](docs/deft-custom-theme.png) | [![Installed font browser with live family previews](docs/deft-fonts.png)](docs/deft-fonts.png) |
-| Choose window, document, text and accent colors. Shown with Georgia, 88% opacity and 70% blur. | Browse and search fonts installed on your computer. Choose writing and source/code fonts separately. |
+Light text over a dark tint keeps the words readable while the wallpaper stays unblurred. **60% opacity, 0% blur**, with a translucent title bar.
 
-Real Preferences and font-browser captures from DEFT 0.2.9. Available font families depend on your computer; font files stay local.
+[![Unblurred wallpaper behind light text and a dark translucent surface](docs/deft-clear.png)](docs/deft-clear.png)
+
+#### Frosted and focused
+
+Turn up blur to soften the background, then set opacity to suit your writing. **75% opacity, 90% blur**, with a translucent title bar.
+
+[![Strong blur and a dark palette keep the writing prominent](docs/deft-frosted.png)](docs/deft-frosted.png)
+
+#### Your palette, down to the accent
+
+Custom themes let you set **window, document, text and accent colors individually**, using color swatches or hex values. Pair a warm background with cream text and a rose accent, or choose an entirely different combination. The accent carries through details such as focus outlines, while your writing keeps its own text color.
+
+Shown below: a plum-and-cream custom theme with **Georgia, 88% opacity and 70% blur**. These are editable choices, not a fixed preset.
+
+[![Custom theme controls showing separate window, document, text and accent colors](docs/deft-custom-theme.png)](docs/deft-custom-theme.png)
+
+#### Your type, independently
+
+Pair your palette with a writing font you enjoy. **Browse or search installed families**, see each family rendered in its own typeface, and click to apply it. Choose the **body font and source/code font separately**, then adjust text size in Preferences. A serif writing font can sit alongside a monospace code font without changing your theme colors.
+
+[![Full-size installed font browser showing search and typeface previews](docs/deft-fonts.png)](docs/deft-fonts.png)
+
+Available font families depend on your computer; font files stay local. These are real desktop-composited captures of installed DEFT 0.2.9 at 1040 x 820 pixels, shown full-width here without upscaling or simulated blur. Your wallpaper and colors affect contrast. The title strip has no name or logo on Windows or Mac.
 
 ## Organize tabs and reopen files
 
