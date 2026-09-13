@@ -19,6 +19,11 @@ Your desktop, softened. Your writing, sharp. Shown with a custom dark palette, *
 
 Start with System, Light or Dark, or build a **Custom** theme around your own colors and fonts. Background opacity and blur stay independent, so the look can change without fading your writing.
 
+Explore the full-size examples below. Open only what you want to see.
+
+<details>
+<summary><strong>Blur and transparency</strong> · From clear wallpaper to a frosted writing surface</summary>
+
 #### Clear, with contrast
 
 Light text over a dark tint keeps the words readable while the wallpaper stays unblurred. **60% opacity, 0% blur**, with a translucent title bar.
@@ -31,6 +36,11 @@ Turn up blur to soften the background, then set opacity to suit your writing. **
 
 [![Strong blur and a dark palette keep the writing prominent](docs/deft-frosted.png)](docs/deft-frosted.png)
 
+</details>
+
+<details>
+<summary><strong>Custom colors</strong> · Your window, document, text and accent, individually</summary>
+
 #### Your palette, down to the accent
 
 Custom themes let you set **window, document, text and accent colors individually**, using color swatches or hex values. Pair a warm background with cream text and a rose accent, or choose an entirely different combination. The accent carries through details such as focus outlines, while your writing keeps its own text color.
@@ -39,13 +49,22 @@ Shown below: a plum-and-cream custom theme with **Georgia, 88% opacity and 70% b
 
 [![Custom theme controls showing separate window, document, text and accent colors](docs/deft-custom-theme.png)](docs/deft-custom-theme.png)
 
+</details>
+
+<details>
+<summary><strong>Fonts and typography</strong> · Separate writing and code fonts, with live previews</summary>
+
 #### Your type, independently
 
 Pair your palette with a writing font you enjoy. **Browse or search installed families**, see each family rendered in its own typeface, and click to apply it. Choose the **body font and source/code font separately**, then adjust text size in Preferences. A serif writing font can sit alongside a monospace code font without changing your theme colors.
 
 [![Full-size installed font browser showing search and typeface previews](docs/deft-fonts.png)](docs/deft-fonts.png)
 
-Available font families depend on your computer; font files stay local. These are real desktop-composited captures of installed DEFT 0.2.9 at 1040 x 820 pixels, shown full-width here without upscaling or simulated blur. Your wallpaper and colors affect contrast. The title strip has no name or logo on Windows or Mac.
+Available font families depend on your computer; font files stay local.
+
+</details>
+
+These are real desktop-composited captures of installed DEFT 0.2.9 at 1040 x 820 pixels, shown full-width here without upscaling or simulated blur. Your wallpaper and colors affect contrast. The title strip has no name or logo on Windows or Mac.
 
 ## Organize tabs and reopen files
 

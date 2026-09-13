@@ -35,3 +35,18 @@ test("GitHub showcase uses native-size desktop captures with honest settings lab
   assert.ok(readme.includes("font families depend on your computer"));
   assert.ok(!readme.includes("More 4K screenshots"));
 });
+
+test("Showcase keeps one preview visible and groups full-size examples into collapsed sections", () => {
+  const readme = fs.readFileSync(path.join(__dirname, "../README.md"), "utf8");
+  const sections = [...readme.matchAll(/<details>\s*<summary>(.*?)<\/summary>\s*([\s\S]*?)<\/details>/g)];
+  assert.equal(sections.length, 3);
+  assert.ok(!/<details\s+open\b/.test(readme));
+  assert.ok(readme.indexOf("docs/deft-windows.png") < readme.indexOf("<details>"));
+  for (const [index, names] of [
+    ["deft-clear-contrast.png", "deft-frosted.png"],
+    ["deft-custom-theme.png"],
+    ["deft-fonts.png"],
+  ].entries()) {
+    for (const name of names) assert.ok(sections[index][2].includes(`](docs/${name})`));
+  }
+});
