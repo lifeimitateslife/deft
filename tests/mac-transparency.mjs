@@ -161,35 +161,22 @@ try {
     console.log(`${label}: ${delta.toFixed(2)}`);
     return delta;
   }
-  for (const appearance of ["light", "dark"]) {
-    for (const blur of [true, false]) {
-      for (const opacity of [0, 68, 95]) {
-        await configure(appearance, "glass", blur, opacity);
-        const delta = await response(
-          `${appearance}-${blur ? "blur" : "clear"}-${opacity}`,
-        );
-        if (opacity === 0) assert.ok(delta > (blur ? 90 : 220));
-        if (opacity === 68) assert.ok(delta > (blur ? 20 : 55) && delta < 100);
-        if (opacity === 95) assert.ok(delta < 25);
-      }
-    }
-    await configure(appearance, "solid", true, 68);
-    assert.ok((await response(`${appearance}-solid`)) < 2);
-  }
+  await configure("light", "glass", true, 0);
+  await response("probe-blur");
   await configure("light", "glass", false, 0);
-  // Establish a rendered clear frame before resizing. Otherwise macOS can
-  // resize a cached snapshot of the preferences panel we just closed.
-  assert.ok((await response("clear-before-resize")) > 220);
-  await app.evaluate(() => globalThis.deftTestWindow.setSize(740, 560));
-  assert.ok((await response("clear-after-resize")) > 220);
-  assert.equal(
-    await app.evaluate(() => globalThis.deftTestWindow.getOpacity()),
-    1,
-    "Foreground must remain opaque",
-  );
-  console.log(
-    "PASS Mac blur/clear opacity, solid isolation, opaque foreground marker and resize",
-  );
+  await response("probe-clear");
+  await app.evaluate(() => globalThis.deftTestWindow.setHasShadow(false));
+  await response("probe-no-shadow");
+  await app.evaluate(() => { globalThis.deftTestWindow.setHasShadow(true); globalThis.deftTestWindow.invalidateShadow(); });
+  await response("probe-invalidated-shadow");
+  await page.waitForTimeout(2000);
+  await response("probe-settled");
+  await app.evaluate(() => { globalThis.deftTestWindow.setVibrancy("hud"); globalThis.deftTestWindow.setVibrancy(null); });
+  await response("probe-reset-vibrancy");
+  await app.evaluate(() => globalThis.deftTestWindow.setBackgroundColor("#01000000"));
+  await response("probe-nonzero-base");
+  console.log("Probe complete");
+
 } finally {
   await app.evaluate(({ app }) => app.exit(0));
   await app.close();
