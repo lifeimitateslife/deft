@@ -64,15 +64,16 @@ try {
       "position:fixed;left:20px;top:250px;width:20px;height:20px;background:#ff00ff;z-index:99999";
     document.body.append(marker);
   });
-  async function sample(strength, label = String(strength)) {
-    await page.evaluate(async (strength) => {
-      await window.deft.settings({ backgroundBlurStrength: strength });
-      const support = await window.deft.material(
-        (await window.deft.settings()).material,
-      );
-      if (!support.blurStrengthSupported)
-        throw Error("Native adjustable blur unavailable");
-    }, strength);
+  async function sample(strength, label = String(strength), update = true) {
+    if (update)
+      await page.evaluate(async (strength) => {
+        await window.deft.settings({ backgroundBlurStrength: strength });
+        const support = await window.deft.material(
+          (await window.deft.settings()).material,
+        );
+        if (!support.blurStrengthSupported)
+          throw Error("Native adjustable blur unavailable");
+      }, strength);
     await page.waitForTimeout(400);
     const file = path.join(root, `${label}.png`);
     const { bounds, content } = await app.evaluate(
@@ -138,14 +139,22 @@ try {
     levels[4] < levels[0] * 0.2,
     "Maximum blur must strongly soften background detail",
   );
+  await sample(30, "lifecycle-baseline");
   await app.evaluate(() => globalThis.blurTest.win.setSize(760, 560));
-  assert.ok((await sample(30, "resized")) < levels[0] * 0.8);
-  await app.evaluate(() => {
-    globalThis.blurTest.win.minimize();
-    globalThis.blurTest.win.restore();
-    globalThis.blurTest.win.moveTop();
+  assert.ok(Math.abs((await sample(30, "resized", false)) - levels[2]) < 5);
+  await app.evaluate(async () => {
+    const { win } = globalThis.blurTest;
+    await new Promise((resolve) => {
+      win.once("minimize", resolve);
+      win.minimize();
+    });
+    await new Promise((resolve) => {
+      win.once("restore", resolve);
+      win.restore();
+    });
+    win.moveTop();
   });
-  assert.ok((await sample(30, "restored")) < levels[0] * 0.8);
+  assert.ok(Math.abs((await sample(30, "restored", false)) - levels[2]) < 5);
   await page.evaluate(() => window.deft.settings({ material: "solid" }));
   assert.ok(
     (await sample(60, "solid")) < 1,
