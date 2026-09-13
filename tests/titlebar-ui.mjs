@@ -23,6 +23,8 @@ async function launch() {
   page = await app.firstWindow();
   await placeTestWindow(app);
   await page.locator(".cm-content").waitFor();
+  await assert.equal(await page.locator(".title-bar").textContent(), "");
+  await assert.equal(await page.locator(".title-bar img, .title-bar svg").count(), 0);
   await app.evaluate(({ BrowserWindow }) => {
     globalThis.titlebarMain = BrowserWindow.getAllWindows()[0];
   });

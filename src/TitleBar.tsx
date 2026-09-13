@@ -23,8 +23,7 @@ export function TitleBar() {
       className="title-bar"
       data-platform={window.deft.platform}
       hidden={fullscreen}
-    >
-      <span>DEFT</span>
-    </div>
+      aria-hidden="true"
+    />
   );
 }
